@@ -1,0 +1,71 @@
+{
+  "scenario": {
+    "U": 2,
+    "G": 4,
+    "S": 3,
+    "Nt": 4,
+    "n_qubits": 8
+  },
+  "exact": {
+    "fval": -54294395.20775351,
+    "sum_rate": 1715876.2426186327,
+    "sinr": [
+      1.2831908687075801,
+      0.1784668136828928,
+      0.2208734291976046
+    ],
+    "feasible": true
+  },
+  "qaoa_sv": {
+    "fval": -54266044.34595892,
+    "sum_rate": 798052.3555085787,
+    "AR_qubo": 0.9994778307837097,
+    "AR_rate": 0.4650990180332908,
+    "feasible": true,
+    "reps": 1
+  },
+  "qaoa_noisy": {
+    "fval": -54294395.20775351,
+    "sum_rate": 1715876.2426186327,
+    "AR_qubo": 1.0,
+    "AR_rate": 1.0,
+    "feasible": true
+  },
+  "greedy": {
+    "sum_rate": 2521160.2658401374,
+    "feasible": false
+  },
+  "random": {
+    "mean_rate": 1699161.2919836938,
+    "std_rate": 699693.9649481409
+  },
+  "p_sweep": [
+    {
+      "p": 1,
+      "fval": -54294395.20775351,
+      "sum_rate": 1715876.2426186327,
+      "AR_qubo": 1.0,
+      "AR_rate": 1.0,
+      "n_evals": 30,
+      "feasible": true
+    },
+    {
+      "p": 2,
+      "fval": -54294395.20775351,
+      "sum_rate": 1715876.2426186327,
+      "AR_qubo": 1.0,
+      "AR_rate": 1.0,
+      "n_evals": 26,
+      "feasible": true
+    },
+    {
+      "p": 3,
+      "fval": -54294395.20775351,
+      "sum_rate": 1715876.2426186327,
+      "AR_qubo": 1.0,
+      "AR_rate": 1.0,
+      "n_evals": 41,
+      "feasible": true
+    }
+  ]
+}
