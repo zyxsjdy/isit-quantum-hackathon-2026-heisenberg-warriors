@@ -1,0 +1,233 @@
+{
+  "scenario": {
+    "U": 3,
+    "G": 6,
+    "S": 5,
+    "Nt": 4,
+    "n_qubits_full_binary": 18,
+    "Gamma_min": 0.5,
+    "seed": 35,
+    "valid_no_colocation_count": 120,
+    "feasible_assignment_count": 22
+  },
+  "exact": {
+    "assignment": [
+      1,
+      0,
+      5
+    ],
+    "sum_rate": 9668105.602122689,
+    "sinr": [
+      1.1644928564025956,
+      1.0844693285721252,
+      6.675359707728294,
+      2.999607353509374,
+      4.873838822271663
+    ],
+    "qubo_energy": 55269710438.95545,
+    "c1": true,
+    "c2": true,
+    "c3": true,
+    "c4": true,
+    "feasible": true,
+    "AR_rate": 1.0
+  },
+  "greedy": {
+    "assignment": [
+      5,
+      4,
+      0
+    ],
+    "sum_rate": 7589942.666313967,
+    "sinr": [
+      1.3594409330823534,
+      2.2400893921772287,
+      3.0705269695707043,
+      1.676353629026197,
+      1.3133437585684826
+    ],
+    "qubo_energy": 28010441027.83848,
+    "c1": true,
+    "c2": true,
+    "c3": true,
+    "c4": true,
+    "feasible": true,
+    "AR_rate": 0.7850496238526347
+  },
+  "greedy_local_search": {
+    "assignment": [
+      5,
+      4,
+      0
+    ],
+    "sum_rate": 7589942.666313967,
+    "sinr": [
+      1.3594409330823534,
+      2.2400893921772287,
+      3.0705269695707043,
+      1.676353629026197,
+      1.3133437585684826
+    ],
+    "qubo_energy": 28010441027.83848,
+    "c1": true,
+    "c2": true,
+    "c3": true,
+    "c4": true,
+    "feasible": true,
+    "AR_rate": 0.7850496238526347
+  },
+  "valid_subspace_qaoa": {
+    "reps": 1,
+    "grid_steps": 61,
+    "gamma": 4.50294947014537,
+    "beta": 2.3038346126325147,
+    "expected_rate": 7949313.013809815,
+    "top_index": 4,
+    "top_probability": 0.35953015397756155,
+    "optimum_probability": 0.35953015397756155,
+    "sampled_best_index": 4,
+    "sampled_best_count": 352,
+    "shots": 1024,
+    "top_assignment": {
+      "assignment": [
+        1,
+        0,
+        5
+      ],
+      "sum_rate": 9668105.602122689,
+      "sinr": [
+        1.1644928564025956,
+        1.0844693285721252,
+        6.675359707728294,
+        2.999607353509374,
+        4.873838822271663
+      ],
+      "qubo_energy": 55269710438.95545,
+      "c1": true,
+      "c2": true,
+      "c3": true,
+      "c4": true,
+      "feasible": true,
+      "AR_rate": 1.0
+    },
+    "sampled_best_assignment": {
+      "assignment": [
+        1,
+        0,
+        5
+      ],
+      "sum_rate": 9668105.602122689,
+      "sinr": [
+        1.1644928564025956,
+        1.0844693285721252,
+        6.675359707728294,
+        2.999607353509374,
+        4.873838822271663
+      ],
+      "qubo_energy": 55269710438.95545,
+      "c1": true,
+      "c2": true,
+      "c3": true,
+      "c4": true,
+      "feasible": true,
+      "AR_rate": 1.0
+    },
+    "expected_AR_rate": 0.8222203336364569,
+    "shot_success_probability": 1.0,
+    "shots_for_95pct_success": 7,
+    "expected_samples_to_optimum": 2.781407870624422,
+    "enrichment_vs_uniform": 7.909663387506354,
+    "top_probabilities": [
+      {
+        "assignment": [
+          1,
+          0,
+          5
+        ],
+        "sum_rate": 9668105.602122689,
+        "probability": 0.35953015397756155,
+        "AR_rate": 1.0
+      },
+      {
+        "assignment": [
+          0,
+          5,
+          1
+        ],
+        "sum_rate": 6919347.700684925,
+        "probability": 0.07923766708735872,
+        "AR_rate": 0.7156880556999441
+      },
+      {
+        "assignment": [
+          5,
+          4,
+          0
+        ],
+        "sum_rate": 7589942.666313967,
+        "probability": 0.07396302601553648,
+        "AR_rate": 0.7850496238526347
+      },
+      {
+        "assignment": [
+          1,
+          5,
+          0
+        ],
+        "sum_rate": 8188093.541498525,
+        "probability": 0.07169766709616059,
+        "AR_rate": 0.8469180911409141
+      },
+      {
+        "assignment": [
+          5,
+          0,
+          1
+        ],
+        "sum_rate": 7843784.821426058,
+        "probability": 0.0603876797473669,
+        "AR_rate": 0.8113052488487413
+      },
+      {
+        "assignment": [
+          1,
+          2,
+          5
+        ],
+        "sum_rate": 6796650.140870997,
+        "probability": 0.04736767694949593,
+        "AR_rate": 0.7029970938028183
+      },
+      {
+        "assignment": [
+          4,
+          0,
+          5
+        ],
+        "sum_rate": 7813194.431022172,
+        "probability": 0.04689709359284664,
+        "AR_rate": 0.8081411966897362
+      },
+      {
+        "assignment": [
+          4,
+          1,
+          5
+        ],
+        "sum_rate": 5446532.257273136,
+        "probability": 0.03926372846628755,
+        "AR_rate": 0.5633505136804999
+      }
+    ]
+  },
+  "random_feasible": {
+    "mean_rate": 6614375.7605538005,
+    "std_rate": 1180601.7960294308,
+    "best_rate": 9668105.602122689,
+    "uniform_optimum_probability": 0.045454545454545456,
+    "mean_AR_rate": 0.6841439298202924,
+    "shot_success_probability": 1.0,
+    "shots_for_95pct_success": 65,
+    "expected_samples_to_optimum": 22.0
+  }
+}
