@@ -21,8 +21,11 @@ The current benchmark evidence is regenerated in
 | Headline `U=4, G=6, S=6` | Greedy | 0.811 | Feasible but 18.9% below optimum |
 | Headline `U=4, G=6, S=6` | Valid-subspace QAOA top state | 1.000 | Matches exact optimum |
 | Headline `U=4, G=6, S=6` | QAOA top-8 + local search | 1.000 | Matches exact optimum |
+| Headline `U=4, G=6, S=6` | Simulated annealing | 0.993 mean | 0.719 optimum-hit rate across trials |
 | Multi-seed suite `U=3, G=6, S=5` | QAOA top-8 + local search | 0.999 mean | 25 evaluated seeds |
+| Multi-seed suite `U=3, G=6, S=5` | Simulated annealing | 0.986 mean | 4/25 optimum hits |
 | Stress seeds | QAOA top-4 + local search | 1.000 mean | 12/12 optimum hits |
+| Stress seeds | Simulated annealing | 0.990 mean | 4/12 optimum hits |
 
 QAOA assigns 6.25x more probability to the headline optimum than uniform
 feasible sampling. At a 95% target success probability, the headline optimum
@@ -32,7 +35,8 @@ requires 157 QAOA samples versus 985 uniform feasible samples.
 
 The judging-relevant comparison is not just "QAOA can find a good answer"; it
 is whether QAOA helps under the same candidate budget. The top-K sweep compares
-QAOA-ranked candidates against random top-K multi-start local search.
+QAOA-ranked candidates against random top-K multi-start local search. A
+simulated annealing baseline is also included as a stronger classical heuristic.
 
 Headline benchmark:
 
@@ -91,7 +95,7 @@ presentation. Those names are not inferred in this README.
 Use the qiskit environment that was used to generate the checked-in results:
 
 ```powershell
-& 'C:\Users\harry\.conda\envs\qiskit\python.exe' -X utf8 .\qaoa_isac_benchmark.py --include-suite --grid-steps 81 --random-trials 64 --sweep-random-trials 64 --suite-random-trials 32 --suite-sweep-random-trials 32 --make-figures
+& 'C:\Users\harry\.conda\envs\qiskit\python.exe' -X utf8 .\qaoa_isac_benchmark.py --include-suite --grid-steps 81 --random-trials 64 --sweep-random-trials 64 --sa-trials 32 --suite-random-trials 32 --suite-sweep-random-trials 32 --suite-sa-trials 16 --make-figures
 ```
 
 Quick syntax check:
@@ -119,3 +123,6 @@ The notebook includes a guarded IBM Quantum Runtime section with
 main benchmark result is the valid-subspace QAOA simulation. The hardware path
 should be presented as a feasibility bridge, not as the source of the headline
 claim, unless a real hardware job is run and added to the results.
+
+See `docs/ibm-hardware-run.md` for the exact install, credential, and notebook
+cells to change when submitting a hardware job.

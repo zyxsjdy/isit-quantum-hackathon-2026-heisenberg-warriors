@@ -104,6 +104,36 @@ class LocalSearchComparison:
         }
 
 
+@dataclass(frozen=True)
+class SimulatedAnnealingComparison:
+    restarts: int
+    steps_per_restart: int
+    trials: int
+    start_temperature: float
+    end_temperature: float
+    best: AssignmentEval
+    mean_ar: float
+    std_ar: float
+    worst_ar: float
+    best_ar: float
+    optimum_hit_rate: float
+
+    def to_json(self, exact_rate: float) -> dict:
+        return {
+            "restarts": self.restarts,
+            "steps_per_restart": self.steps_per_restart,
+            "trials": self.trials,
+            "start_temperature": self.start_temperature,
+            "end_temperature": self.end_temperature,
+            "best": self.best.to_json(exact_rate),
+            "mean_AR_rate": self.mean_ar,
+            "std_AR_rate": self.std_ar,
+            "worst_AR_rate": self.worst_ar,
+            "best_AR_rate": self.best_ar,
+            "optimum_hit_rate": self.optimum_hit_rate,
+        }
+
+
 def build_environment(params: SystemParams, seed: int, quiet: bool = True) -> ISACEnvironment:
     if not quiet:
         return ISACEnvironment(params, seed=seed)
@@ -533,6 +563,122 @@ def build_top_k_sweep(
     return rows
 
 
+def build_neighbor_indices(states: Sequence[AssignmentEval]) -> list[np.ndarray]:
+    adjacency = build_assignment_adjacency(states)
+    return [np.flatnonzero(row > 0.0) for row in adjacency]
+
+
+def simulated_annealing_once(
+    states: Sequence[AssignmentEval],
+    neighbor_indices: Sequence[np.ndarray],
+    rng: np.random.Generator,
+    *,
+    steps: int,
+    start_temperature: float,
+    end_temperature: float,
+) -> AssignmentEval:
+    if steps <= 0:
+        raise ValueError("Simulated annealing steps must be positive.")
+    if start_temperature <= 0.0 or end_temperature <= 0.0:
+        raise ValueError("Simulated annealing temperatures must be positive.")
+
+    rates = np.array([row.sum_rate for row in states], dtype=float)
+    rate_span = float(rates.max() - rates.min())
+    if rate_span <= 0.0:
+        return states[int(rng.integers(len(states)))]
+
+    scores = (rates - rates.min()) / rate_span
+    current_index = int(rng.integers(len(states)))
+    best_index = current_index
+
+    for step in range(steps):
+        neighbors = neighbor_indices[current_index]
+        if len(neighbors) == 0:
+            candidate_index = int(rng.integers(len(states)))
+        else:
+            candidate_index = int(rng.choice(neighbors))
+
+        if steps == 1:
+            temperature = end_temperature
+        else:
+            progress = step / (steps - 1)
+            temperature = start_temperature * (
+                end_temperature / start_temperature
+            ) ** progress
+
+        delta = float(scores[candidate_index] - scores[current_index])
+        if delta >= 0.0 or rng.random() < math.exp(delta / temperature):
+            current_index = candidate_index
+            if rates[current_index] > rates[best_index]:
+                best_index = current_index
+
+    return states[best_index]
+
+
+def compare_simulated_annealing(
+    states: Sequence[AssignmentEval],
+    exact: AssignmentEval,
+    *,
+    restarts: int,
+    steps_per_restart: int,
+    trials: int,
+    seed: int,
+    start_temperature: float = 0.25,
+    end_temperature: float = 0.01,
+) -> SimulatedAnnealingComparison:
+    if restarts <= 0:
+        raise ValueError("Simulated annealing restarts must be positive.")
+    if trials <= 0:
+        raise ValueError("Simulated annealing trials must be positive.")
+
+    neighbor_indices = build_neighbor_indices(states)
+    rng = np.random.default_rng(seed + 4040)
+    trial_ars: list[float] = []
+    hits = 0
+    overall_best: AssignmentEval | None = None
+
+    for _ in range(trials):
+        trial_best: AssignmentEval | None = None
+        for _ in range(restarts):
+            candidate = simulated_annealing_once(
+                states,
+                neighbor_indices,
+                rng,
+                steps=steps_per_restart,
+                start_temperature=start_temperature,
+                end_temperature=end_temperature,
+            )
+            if trial_best is None or candidate.sum_rate > trial_best.sum_rate:
+                trial_best = candidate
+
+        if trial_best is None:
+            raise RuntimeError("Simulated annealing did not produce a candidate.")
+        if overall_best is None or trial_best.sum_rate > overall_best.sum_rate:
+            overall_best = trial_best
+        ar_rate = trial_best.sum_rate / exact.sum_rate
+        trial_ars.append(ar_rate)
+        if ar_rate >= 1.0 - 1e-9:
+            hits += 1
+
+    if overall_best is None:
+        raise RuntimeError("Simulated annealing did not produce a best assignment.")
+
+    ar_array = np.array(trial_ars, dtype=float)
+    return SimulatedAnnealingComparison(
+        restarts=restarts,
+        steps_per_restart=steps_per_restart,
+        trials=trials,
+        start_temperature=start_temperature,
+        end_temperature=end_temperature,
+        best=overall_best,
+        mean_ar=float(ar_array.mean()),
+        std_ar=float(ar_array.std(ddof=0)),
+        worst_ar=float(ar_array.min()),
+        best_ar=float(ar_array.max()),
+        optimum_hit_rate=hits / trials,
+    )
+
+
 def shots_for_success(probability: float, target: float = 0.95) -> int:
     if probability <= 0.0:
         return math.inf
@@ -582,6 +728,16 @@ def run_benchmark(args: argparse.Namespace) -> dict:
         top_k=local_top_k,
         random_trials=random_trials,
         seed=args.seed,
+    )
+    simulated_annealing = compare_simulated_annealing(
+        feasible,
+        exact,
+        restarts=getattr(args, "sa_restarts", local_top_k),
+        steps_per_restart=getattr(args, "sa_steps", 24),
+        trials=getattr(args, "sa_trials", 32),
+        seed=args.seed,
+        start_temperature=getattr(args, "sa_start_temperature", 0.25),
+        end_temperature=getattr(args, "sa_end_temperature", 0.01),
     )
     top_k_sweep = build_top_k_sweep(
         env,
@@ -645,6 +801,7 @@ def run_benchmark(args: argparse.Namespace) -> dict:
             "top_probabilities": ordered_probability[: min(args.top_k, len(ordered_probability))],
         },
         "qaoa_top_k_local_search": local_comparison.to_json(exact.sum_rate),
+        "simulated_annealing": simulated_annealing.to_json(exact.sum_rate),
         "top_k_sweep": top_k_sweep,
         "random_feasible": {
             **random_baseline,
@@ -679,8 +836,14 @@ def summarize_suite_rows(rows: Sequence[dict]) -> dict:
         "mean_random_top_k_local_AR_rate": summarize_metric(
             rows, "random_top_k_local_AR_rate"
         ),
+        "mean_simulated_annealing_AR_rate": summarize_metric(
+            rows, "simulated_annealing_AR_rate"
+        ),
         "mean_qaoa_optimum_probability": summarize_metric(
             rows, "qaoa_optimum_probability"
+        ),
+        "simulated_annealing_optimum_hits": int(
+            sum(row["simulated_annealing_AR_rate"] >= 1.0 - 1e-9 for row in rows)
         ),
         "qaoa_top_k_optimum_hits": int(
             sum(row["qaoa_top_k_local_AR_rate"] >= 1.0 - 1e-9 for row in rows)
@@ -780,6 +943,11 @@ def run_suite(args: argparse.Namespace) -> dict:
     random_trials = getattr(args, "suite_random_trials", 8)
     sweep_random_trials = getattr(args, "suite_sweep_random_trials", None) or random_trials
     sweep_top_k = parse_int_list(getattr(args, "suite_sweep_top_k", "1,2,4,8,16"))
+    sa_restarts = getattr(args, "suite_sa_restarts", top_k)
+    sa_steps = getattr(args, "suite_sa_steps", 24)
+    sa_trials = getattr(args, "suite_sa_trials", 16)
+    sa_start_temperature = getattr(args, "suite_sa_start_temperature", 0.25)
+    sa_end_temperature = getattr(args, "suite_sa_end_temperature", 0.01)
     stress_gap = getattr(args, "suite_stress_gap", 0.10)
 
     rows: list[dict] = []
@@ -822,6 +990,16 @@ def run_suite(args: argparse.Namespace) -> dict:
             random_trials=random_trials,
             seed=seed,
         )
+        simulated_annealing = compare_simulated_annealing(
+            feasible,
+            exact,
+            restarts=sa_restarts,
+            steps_per_restart=sa_steps,
+            trials=sa_trials,
+            seed=seed,
+            start_temperature=sa_start_temperature,
+            end_temperature=sa_end_temperature,
+        )
         top_k_sweep = build_top_k_sweep(
             env,
             feasible,
@@ -846,6 +1024,13 @@ def run_suite(args: argparse.Namespace) -> dict:
                 "random_top_k_optimum_hit_rate": (
                     local_comparison.random_optimum_hit_rate
                 ),
+                "simulated_annealing_AR_rate": simulated_annealing.mean_ar,
+                "simulated_annealing_optimum_hit_rate": (
+                    simulated_annealing.optimum_hit_rate
+                ),
+                "simulated_annealing_assignment": list(
+                    simulated_annealing.best.assignment
+                ),
                 "qaoa_optimum_probability": qaoa_result.optimum_probability,
                 "qaoa_top_assignment": list(qaoa_top.assignment),
                 "qaoa_top_k_assignment": list(local_comparison.qaoa_best.assignment),
@@ -869,6 +1054,9 @@ def run_suite(args: argparse.Namespace) -> dict:
             "random_trials": random_trials,
             "sweep_top_k": sweep_top_k,
             "sweep_random_trials": sweep_random_trials,
+            "simulated_annealing_restarts": sa_restarts,
+            "simulated_annealing_steps": sa_steps,
+            "simulated_annealing_trials": sa_trials,
             "stress_gap": stress_gap,
         },
         "all": summarize_suite_rows(rows),
@@ -889,6 +1077,7 @@ def generate_visualizations(results: dict, output_dir: str | Path = "figures") -
 
     qaoa = results["valid_subspace_qaoa"]
     random = results["random_feasible"]
+    simulated_annealing = results.get("simulated_annealing")
     top_k_sweep = results.get("top_k_sweep", [])
     suite = results.get("suite", {})
 
@@ -987,6 +1176,14 @@ def generate_visualizations(results: dict, output_dir: str | Path = "figures") -
             axes[0].plot(k_values, qaoa_ar, marker="o", color="#17becf", label="QAOA top-K + local")
             axes[0].plot(k_values, random_ar, marker="s", color="#9467bd", label="Random top-K + local")
             axes[0].plot(k_values, random_hit, marker="^", color="#ff7f0e", label="Random optimum-hit rate")
+            if simulated_annealing:
+                axes[0].axhline(
+                    simulated_annealing["mean_AR_rate"],
+                    color="#8c564b",
+                    linestyle="--",
+                    linewidth=1.4,
+                    label="SA mean AR",
+                )
             axes[0].set_title("Headline candidate efficiency")
             axes[0].set_xlabel("Candidate budget K")
             axes[0].set_ylabel("AR rate / hit rate")
@@ -1002,9 +1199,20 @@ def generate_visualizations(results: dict, output_dir: str | Path = "figures") -
             qaoa_hits = [
                 row["qaoa_optimum_hits"] / row["count"] for row in stress_sweep
             ]
+            stress_sa = suite.get("stress", {}).get(
+                "mean_simulated_annealing_AR_rate"
+            )
             axes[1].plot(k_values, qaoa_ar, marker="o", color="#17becf", label="QAOA mean AR")
             axes[1].plot(k_values, random_ar, marker="s", color="#9467bd", label="Random mean AR")
             axes[1].plot(k_values, qaoa_hits, marker="^", color="#2ca02c", label="QAOA optimum-hit rate")
+            if stress_sa is not None:
+                axes[1].axhline(
+                    stress_sa,
+                    color="#8c564b",
+                    linestyle="--",
+                    linewidth=1.4,
+                    label="SA mean AR",
+                )
             axes[1].set_title("Stress-suite candidate efficiency")
             axes[1].set_xlabel("Candidate budget K")
             axes[1].set_ylabel("AR rate / hit rate")
@@ -1083,6 +1291,7 @@ def print_summary(results: dict) -> None:
     polished = results["greedy_local_search"]
     qaoa = results["valid_subspace_qaoa"]
     qaoa_local = results["qaoa_top_k_local_search"]
+    simulated_annealing = results["simulated_annealing"]
     random = results["random_feasible"]
 
     print("Hard QAOA-ISAC benchmark")
@@ -1126,6 +1335,11 @@ def print_summary(results: dict) -> None:
         qaoa_local["qaoa_best"]["AR_rate"],
         qaoa_local["qaoa_best"]["assignment"],
     ))
+    print("Simulated annealing     {0:10.3f}   {1:7.3f}   {2}".format(
+        simulated_annealing["best"]["sum_rate"] / 1e6,
+        simulated_annealing["best"]["AR_rate"],
+        simulated_annealing["best"]["assignment"],
+    ))
     print()
     print(
         "QAOA optimum probability: {0:.3f} "
@@ -1141,6 +1355,12 @@ def print_summary(results: dict) -> None:
             qaoa_local["top_k"],
             qaoa_local["qaoa_best"]["AR_rate"],
             qaoa_local["random_mean_AR_rate"],
+        )
+    )
+    print(
+        "Simulated annealing mean AR={0:.3f}; optimum-hit rate={1:.3f}".format(
+            simulated_annealing["mean_AR_rate"],
+            simulated_annealing["optimum_hit_rate"],
         )
     )
     print(
@@ -1180,7 +1400,8 @@ def print_summary(results: dict) -> None:
             "Evaluated seeds ({count}): greedy AR={mean_greedy_AR_rate:.3f}, "
             "greedy+local AR={mean_greedy_local_AR_rate:.3f}, "
             "QAOA top-k+local AR={mean_qaoa_top_k_local_AR_rate:.3f}, "
-            "random top-k+local AR={mean_random_top_k_local_AR_rate:.3f}".format(
+            "random top-k+local AR={mean_random_top_k_local_AR_rate:.3f}, "
+            "SA AR={mean_simulated_annealing_AR_rate:.3f}".format(
                 **all_rows
             )
         )
@@ -1188,7 +1409,8 @@ def print_summary(results: dict) -> None:
             "Stress seeds ({count}): greedy AR={mean_greedy_AR_rate:.3f}, "
             "greedy+local AR={mean_greedy_local_AR_rate:.3f}, "
             "QAOA top-k+local AR={mean_qaoa_top_k_local_AR_rate:.3f}, "
-            "random top-k+local AR={mean_random_top_k_local_AR_rate:.3f}".format(
+            "random top-k+local AR={mean_random_top_k_local_AR_rate:.3f}, "
+            "SA AR={mean_simulated_annealing_AR_rate:.3f}".format(
                 **stress
             )
         )
@@ -1228,6 +1450,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--random-trials", type=int, default=8)
     parser.add_argument("--sweep-top-k", default="1,2,4,8,16")
     parser.add_argument("--sweep-random-trials", type=int, default=None)
+    parser.add_argument("--sa-restarts", type=int, default=8)
+    parser.add_argument("--sa-steps", type=int, default=24)
+    parser.add_argument("--sa-trials", type=int, default=32)
+    parser.add_argument("--sa-start-temperature", type=float, default=0.25)
+    parser.add_argument("--sa-end-temperature", type=float, default=0.01)
     parser.add_argument("--include-suite", action="store_true")
     parser.add_argument("--suite-seed-range", default="1:60")
     parser.add_argument("--suite-uavs", type=int, default=3)
@@ -1241,6 +1468,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--suite-random-trials", type=int, default=8)
     parser.add_argument("--suite-sweep-top-k", default="1,2,4,8,16")
     parser.add_argument("--suite-sweep-random-trials", type=int, default=None)
+    parser.add_argument("--suite-sa-restarts", type=int, default=8)
+    parser.add_argument("--suite-sa-steps", type=int, default=24)
+    parser.add_argument("--suite-sa-trials", type=int, default=16)
+    parser.add_argument("--suite-sa-start-temperature", type=float, default=0.25)
+    parser.add_argument("--suite-sa-end-temperature", type=float, default=0.01)
     parser.add_argument("--suite-stress-gap", type=float, default=0.10)
     parser.add_argument("--output", default="qaoa_isac_benchmark_results.json")
     parser.add_argument("--make-figures", action="store_true")

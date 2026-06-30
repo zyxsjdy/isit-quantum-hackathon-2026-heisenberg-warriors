@@ -8696,6 +8696,42 @@
     "qaoa_beats_random_trial_rate": 0.296875,
     "random_trials": 64
   },
+  "simulated_annealing": {
+    "restarts": 8,
+    "steps_per_restart": 24,
+    "trials": 32,
+    "start_temperature": 0.25,
+    "end_temperature": 0.01,
+    "best": {
+      "assignment": [
+        2,
+        4,
+        1,
+        3
+      ],
+      "sum_rate": 7626835.738324434,
+      "sinr": [
+        1.458553773237394,
+        2.4269670593149306,
+        1.4540896406198138,
+        0.9602544618651789,
+        1.0006651680160252,
+        1.4374706975556204
+      ],
+      "qubo_energy": 30626027288.23961,
+      "c1": true,
+      "c2": true,
+      "c3": true,
+      "c4": true,
+      "feasible": true,
+      "AR_rate": 1.0
+    },
+    "mean_AR_rate": 0.992947221343191,
+    "std_AR_rate": 0.020484074123393762,
+    "worst_AR_rate": 0.9114109085907078,
+    "best_AR_rate": 1.0,
+    "optimum_hit_rate": 0.71875
+  },
   "top_k_sweep": [
     {
       "top_k": 1,
@@ -8837,6 +8873,9 @@
         16
       ],
       "sweep_random_trials": 32,
+      "simulated_annealing_restarts": 8,
+      "simulated_annealing_steps": 24,
+      "simulated_annealing_trials": 16,
       "stress_gap": 0.1
     },
     "all": {
@@ -8847,7 +8886,9 @@
       "mean_qaoa_top_AR_rate": 0.9296209715718708,
       "mean_qaoa_top_k_local_AR_rate": 0.9992119144089444,
       "mean_random_top_k_local_AR_rate": 0.9901253547548748,
+      "mean_simulated_annealing_AR_rate": 0.9864857255953211,
       "mean_qaoa_optimum_probability": 0.10118078500715465,
+      "simulated_annealing_optimum_hits": 4,
       "qaoa_top_k_optimum_hits": 23,
       "qaoa_top_k_beats_greedy": 21,
       "qaoa_top_k_beats_random_top_k": 17
@@ -8860,7 +8901,9 @@
       "mean_qaoa_top_AR_rate": 0.9037940746739804,
       "mean_qaoa_top_k_local_AR_rate": 1.0,
       "mean_random_top_k_local_AR_rate": 0.990372269706373,
+      "mean_simulated_annealing_AR_rate": 0.9900098544349096,
       "mean_qaoa_optimum_probability": 0.10966554830535452,
+      "simulated_annealing_optimum_hits": 4,
       "qaoa_top_k_optimum_hits": 12,
       "qaoa_top_k_beats_greedy": 12,
       "qaoa_top_k_beats_random_top_k": 9
@@ -9020,6 +9063,13 @@
         "qaoa_top_k_local_AR_rate": 1.0,
         "random_top_k_local_AR_rate": 1.0,
         "random_top_k_optimum_hit_rate": 1.0,
+        "simulated_annealing_AR_rate": 0.9990222448832513,
+        "simulated_annealing_optimum_hit_rate": 0.9375,
+        "simulated_annealing_assignment": [
+          0,
+          5,
+          4
+        ],
         "qaoa_optimum_probability": 0.21551008100686897,
         "qaoa_top_assignment": [
           0,
@@ -9149,6 +9199,13 @@
         "qaoa_top_k_local_AR_rate": 1.0,
         "random_top_k_local_AR_rate": 0.9947566122452407,
         "random_top_k_optimum_hit_rate": 0.9375,
+        "simulated_annealing_AR_rate": 0.9778823413634308,
+        "simulated_annealing_optimum_hit_rate": 0.8125,
+        "simulated_annealing_assignment": [
+          1,
+          0,
+          5
+        ],
         "qaoa_optimum_probability": 0.13994657605448008,
         "qaoa_top_assignment": [
           1,
@@ -9278,6 +9335,13 @@
         "qaoa_top_k_local_AR_rate": 1.0,
         "random_top_k_local_AR_rate": 0.986345540327018,
         "random_top_k_optimum_hit_rate": 0.84375,
+        "simulated_annealing_AR_rate": 0.9770239705664192,
+        "simulated_annealing_optimum_hit_rate": 0.6875,
+        "simulated_annealing_assignment": [
+          2,
+          5,
+          4
+        ],
         "qaoa_optimum_probability": 0.017157373932932898,
         "qaoa_top_assignment": [
           2,
@@ -9407,6 +9471,13 @@
         "qaoa_top_k_local_AR_rate": 1.0,
         "random_top_k_local_AR_rate": 0.9884607087414156,
         "random_top_k_optimum_hit_rate": 0.875,
+        "simulated_annealing_AR_rate": 0.981182477410742,
+        "simulated_annealing_optimum_hit_rate": 0.8125,
+        "simulated_annealing_assignment": [
+          1,
+          4,
+          3
+        ],
         "qaoa_optimum_probability": 0.0836509499454707,
         "qaoa_top_assignment": [
           1,
@@ -9536,6 +9607,13 @@
         "qaoa_top_k_local_AR_rate": 1.0,
         "random_top_k_local_AR_rate": 1.0,
         "random_top_k_optimum_hit_rate": 1.0,
+        "simulated_annealing_AR_rate": 1.0,
+        "simulated_annealing_optimum_hit_rate": 1.0,
+        "simulated_annealing_assignment": [
+          2,
+          0,
+          4
+        ],
         "qaoa_optimum_probability": 0.14849585920420239,
         "qaoa_top_assignment": [
           0,
@@ -9665,6 +9743,13 @@
         "qaoa_top_k_local_AR_rate": 1.0,
         "random_top_k_local_AR_rate": 0.9960691432785345,
         "random_top_k_optimum_hit_rate": 0.84375,
+        "simulated_annealing_AR_rate": 0.9905659438684828,
+        "simulated_annealing_optimum_hit_rate": 0.625,
+        "simulated_annealing_assignment": [
+          1,
+          4,
+          5
+        ],
         "qaoa_optimum_probability": 0.06207880393499984,
         "qaoa_top_assignment": [
           0,
@@ -9794,6 +9879,13 @@
         "qaoa_top_k_local_AR_rate": 1.0,
         "random_top_k_local_AR_rate": 0.9893960163678779,
         "random_top_k_optimum_hit_rate": 0.75,
+        "simulated_annealing_AR_rate": 0.9943647016980266,
+        "simulated_annealing_optimum_hit_rate": 0.875,
+        "simulated_annealing_assignment": [
+          5,
+          3,
+          4
+        ],
         "qaoa_optimum_probability": 0.0414502067341917,
         "qaoa_top_assignment": [
           2,
@@ -9923,6 +10015,13 @@
         "qaoa_top_k_local_AR_rate": 1.0,
         "random_top_k_local_AR_rate": 0.9616903175481033,
         "random_top_k_optimum_hit_rate": 0.6875,
+        "simulated_annealing_AR_rate": 0.9514637736320786,
+        "simulated_annealing_optimum_hit_rate": 0.625,
+        "simulated_annealing_assignment": [
+          3,
+          0,
+          1
+        ],
         "qaoa_optimum_probability": 0.08832767403597382,
         "qaoa_top_assignment": [
           1,
@@ -10052,6 +10151,13 @@
         "qaoa_top_k_local_AR_rate": 1.0,
         "random_top_k_local_AR_rate": 0.97912201641012,
         "random_top_k_optimum_hit_rate": 0.78125,
+        "simulated_annealing_AR_rate": 0.9927185182158194,
+        "simulated_annealing_optimum_hit_rate": 0.9375,
+        "simulated_annealing_assignment": [
+          0,
+          4,
+          2
+        ],
         "qaoa_optimum_probability": 0.05003108327138984,
         "qaoa_top_assignment": [
           0,
@@ -10181,6 +10287,13 @@
         "qaoa_top_k_local_AR_rate": 1.0,
         "random_top_k_local_AR_rate": 0.9595251248650125,
         "random_top_k_optimum_hit_rate": 0.6875,
+        "simulated_annealing_AR_rate": 0.919050249730025,
+        "simulated_annealing_optimum_hit_rate": 0.375,
+        "simulated_annealing_assignment": [
+          0,
+          3,
+          5
+        ],
         "qaoa_optimum_probability": 0.09478551371606712,
         "qaoa_top_assignment": [
           3,
@@ -10310,6 +10423,13 @@
         "qaoa_top_k_local_AR_rate": 1.0,
         "random_top_k_local_AR_rate": 1.0,
         "random_top_k_optimum_hit_rate": 1.0,
+        "simulated_annealing_AR_rate": 0.9899292281404721,
+        "simulated_annealing_optimum_hit_rate": 0.9375,
+        "simulated_annealing_assignment": [
+          0,
+          4,
+          3
+        ],
         "qaoa_optimum_probability": 0.22157180085662706,
         "qaoa_top_assignment": [
           0,
@@ -10439,6 +10559,13 @@
         "qaoa_top_k_local_AR_rate": 1.0,
         "random_top_k_local_AR_rate": 0.9783955287595714,
         "random_top_k_optimum_hit_rate": 0.8125,
+        "simulated_annealing_AR_rate": 0.9556906650512585,
+        "simulated_annealing_optimum_hit_rate": 0.6875,
+        "simulated_annealing_assignment": [
+          5,
+          1,
+          2
+        ],
         "qaoa_optimum_probability": 0.09292153362298793,
         "qaoa_top_assignment": [
           2,
@@ -10568,6 +10695,13 @@
         "qaoa_top_k_local_AR_rate": 1.0,
         "random_top_k_local_AR_rate": 0.99455258241554,
         "random_top_k_optimum_hit_rate": 0.96875,
+        "simulated_annealing_AR_rate": 0.98910516483108,
+        "simulated_annealing_optimum_hit_rate": 0.9375,
+        "simulated_annealing_assignment": [
+          1,
+          2,
+          3
+        ],
         "qaoa_optimum_probability": 0.08957745375840993,
         "qaoa_top_assignment": [
           5,
@@ -10697,6 +10831,13 @@
         "qaoa_top_k_local_AR_rate": 0.9936449049409761,
         "random_top_k_local_AR_rate": 0.9752803055248458,
         "random_top_k_optimum_hit_rate": 0.28125,
+        "simulated_annealing_AR_rate": 0.9878660214031633,
+        "simulated_annealing_optimum_hit_rate": 0.5,
+        "simulated_annealing_assignment": [
+          0,
+          2,
+          1
+        ],
         "qaoa_optimum_probability": 0.04999999999999985,
         "qaoa_top_assignment": [
           1,
@@ -10826,6 +10967,13 @@
         "qaoa_top_k_local_AR_rate": 0.9866529552826356,
         "random_top_k_local_AR_rate": 0.9927697187547251,
         "random_top_k_optimum_hit_rate": 0.90625,
+        "simulated_annealing_AR_rate": 0.9983316194103294,
+        "simulated_annealing_optimum_hit_rate": 0.875,
+        "simulated_annealing_assignment": [
+          1,
+          0,
+          5
+        ],
         "qaoa_optimum_probability": 0.012622706359236426,
         "qaoa_top_assignment": [
           4,
@@ -10955,6 +11103,13 @@
         "qaoa_top_k_local_AR_rate": 1.0,
         "random_top_k_local_AR_rate": 0.9904323806963071,
         "random_top_k_optimum_hit_rate": 0.9375,
+        "simulated_annealing_AR_rate": 1.0,
+        "simulated_annealing_optimum_hit_rate": 1.0,
+        "simulated_annealing_assignment": [
+          1,
+          0,
+          5
+        ],
         "qaoa_optimum_probability": 0.35821310167838477,
         "qaoa_top_assignment": [
           1,
@@ -11084,6 +11239,13 @@
         "qaoa_top_k_local_AR_rate": 1.0,
         "random_top_k_local_AR_rate": 0.9816933194800921,
         "random_top_k_optimum_hit_rate": 0.5625,
+        "simulated_annealing_AR_rate": 1.0,
+        "simulated_annealing_optimum_hit_rate": 1.0,
+        "simulated_annealing_assignment": [
+          1,
+          2,
+          0
+        ],
         "qaoa_optimum_probability": 0.17757598324938198,
         "qaoa_top_assignment": [
           1,
@@ -11213,6 +11375,13 @@
         "qaoa_top_k_local_AR_rate": 1.0,
         "random_top_k_local_AR_rate": 1.0,
         "random_top_k_optimum_hit_rate": 1.0,
+        "simulated_annealing_AR_rate": 0.9781139969461816,
+        "simulated_annealing_optimum_hit_rate": 0.75,
+        "simulated_annealing_assignment": [
+          4,
+          1,
+          5
+        ],
         "qaoa_optimum_probability": 0.14285714285714257,
         "qaoa_top_assignment": [
           1,
@@ -11342,6 +11511,13 @@
         "qaoa_top_k_local_AR_rate": 1.0,
         "random_top_k_local_AR_rate": 1.0,
         "random_top_k_optimum_hit_rate": 1.0,
+        "simulated_annealing_AR_rate": 0.9953704144315954,
+        "simulated_annealing_optimum_hit_rate": 0.875,
+        "simulated_annealing_assignment": [
+          4,
+          0,
+          2
+        ],
         "qaoa_optimum_probability": 0.048987312968464626,
         "qaoa_top_assignment": [
           3,
@@ -11471,6 +11647,13 @@
         "qaoa_top_k_local_AR_rate": 1.0,
         "random_top_k_local_AR_rate": 0.9982809142818705,
         "random_top_k_optimum_hit_rate": 0.96875,
+        "simulated_annealing_AR_rate": 0.9896854856912226,
+        "simulated_annealing_optimum_hit_rate": 0.8125,
+        "simulated_annealing_assignment": [
+          3,
+          5,
+          1
+        ],
         "qaoa_optimum_probability": 0.09995985971782936,
         "qaoa_top_assignment": [
           3,
@@ -11600,6 +11783,13 @@
         "qaoa_top_k_local_AR_rate": 1.0,
         "random_top_k_local_AR_rate": 0.9981028109242907,
         "random_top_k_optimum_hit_rate": 0.65625,
+        "simulated_annealing_AR_rate": 0.9989651695950676,
+        "simulated_annealing_optimum_hit_rate": 0.8125,
+        "simulated_annealing_assignment": [
+          0,
+          2,
+          4
+        ],
         "qaoa_optimum_probability": 0.023406348492544856,
         "qaoa_top_assignment": [
           2,
@@ -11729,6 +11919,13 @@
         "qaoa_top_k_local_AR_rate": 1.0,
         "random_top_k_local_AR_rate": 0.994474482422697,
         "random_top_k_optimum_hit_rate": 0.6875,
+        "simulated_annealing_AR_rate": 0.9994511685229899,
+        "simulated_annealing_optimum_hit_rate": 0.9375,
+        "simulated_annealing_assignment": [
+          2,
+          3,
+          1
+        ],
         "qaoa_optimum_probability": 0.04569174758590522,
         "qaoa_top_assignment": [
           1,
@@ -11858,6 +12055,13 @@
         "qaoa_top_k_local_AR_rate": 1.0,
         "random_top_k_local_AR_rate": 1.0,
         "random_top_k_optimum_hit_rate": 1.0,
+        "simulated_annealing_AR_rate": 0.9994668115770877,
+        "simulated_annealing_optimum_hit_rate": 0.9375,
+        "simulated_annealing_assignment": [
+          0,
+          3,
+          5
+        ],
         "qaoa_optimum_probability": 0.13260122266599056,
         "qaoa_top_assignment": [
           2,
@@ -11987,6 +12191,13 @@
         "qaoa_top_k_local_AR_rate": 1.0,
         "random_top_k_local_AR_rate": 1.0,
         "random_top_k_optimum_hit_rate": 1.0,
+        "simulated_annealing_AR_rate": 1.0,
+        "simulated_annealing_optimum_hit_rate": 1.0,
+        "simulated_annealing_assignment": [
+          0,
+          2,
+          3
+        ],
         "qaoa_optimum_probability": 0.062233007665911895,
         "qaoa_top_assignment": [
           1,
@@ -12116,6 +12327,13 @@
         "qaoa_top_k_local_AR_rate": 1.0,
         "random_top_k_local_AR_rate": 0.9937863458286094,
         "random_top_k_optimum_hit_rate": 0.875,
+        "simulated_annealing_AR_rate": 0.9968931729143047,
+        "simulated_annealing_optimum_hit_rate": 0.9375,
+        "simulated_annealing_assignment": [
+          0,
+          2,
+          3
+        ],
         "qaoa_optimum_probability": 0.029866281863471653,
         "qaoa_top_assignment": [
           0,
