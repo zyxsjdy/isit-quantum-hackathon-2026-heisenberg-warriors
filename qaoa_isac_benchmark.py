@@ -64,6 +64,8 @@ class QAOASubspaceResult:
     reps: int
     grid_steps: int
     evaluations: int
+    selection_objective: str
+    candidate_top_k: int
     gamma: float
     beta: float
     expected_rate: float
@@ -835,11 +837,17 @@ def run_valid_subspace_qaoa(
     shots: int = 1024,
     seed: int = 35,
     record_diagnostics: bool = False,
+    selection_objective: str = "expected_rate",
+    candidate_top_k: int = 8,
 ) -> tuple[QAOASubspaceResult, np.ndarray]:
     if reps != 1:
         raise ValueError("This benchmark currently implements the p=1 subspace solver.")
     if len(states) < 2:
         raise ValueError("At least two feasible states are required for QAOA.")
+    if selection_objective not in {"expected_rate", "top_k_raw_rate"}:
+        raise ValueError("selection_objective must be 'expected_rate' or 'top_k_raw_rate'.")
+    if candidate_top_k <= 0:
+        raise ValueError("candidate_top_k must be positive.")
 
     rates = np.array([row.sum_rate for row in states], dtype=float)
     exact_rate = float(states[exact_best_index].sum_rate)
@@ -864,7 +872,7 @@ def run_valid_subspace_qaoa(
         expected_rate = float(probabilities @ rates)
         return expected_rate, probabilities
 
-    best_key: tuple[float, float, float] | None = None
+    best_key: tuple[float, ...] | None = None
     best_gamma = 0.0
     best_beta = 0.0
     best_expected = -math.inf
@@ -883,13 +891,25 @@ def run_valid_subspace_qaoa(
             expected_rate, probabilities = evaluate_angles(float(gamma), float(beta))
             top_index = int(np.argmax(probabilities))
             expected_ar = expected_rate / exact_rate
+            top_k_count = min(candidate_top_k, len(states))
+            top_k_indices = np.argsort(-probabilities)[:top_k_count]
+            raw_top_k_rate = float(rates[top_k_indices].max())
+            top_k_probability_mass = float(probabilities[top_k_indices].sum())
             if angle_landscape is not None:
                 angle_landscape[gamma_index, beta_index] = expected_ar
-            key = (
-                expected_rate,
-                states[top_index].sum_rate,
-                float(probabilities[top_index]),
-            )
+            if selection_objective == "top_k_raw_rate":
+                key = (
+                    raw_top_k_rate,
+                    expected_rate,
+                    top_k_probability_mass,
+                    float(probabilities[exact_best_index]),
+                )
+            else:
+                key = (
+                    expected_rate,
+                    states[top_index].sum_rate,
+                    float(probabilities[top_index]),
+                )
             if best_key is None or key > best_key:
                 best_key = key
                 best_gamma = float(gamma)
@@ -904,6 +924,8 @@ def run_valid_subspace_qaoa(
                             "beta": float(beta),
                             "best_expected_AR_rate": expected_ar,
                             "top_AR_rate": states[top_index].sum_rate / exact_rate,
+                            "top_k_raw_AR_rate": raw_top_k_rate / exact_rate,
+                            "top_k_probability_mass": top_k_probability_mass,
                             "top_probability": float(probabilities[top_index]),
                             "optimum_probability": float(
                                 probabilities[exact_best_index]
@@ -921,6 +943,8 @@ def run_valid_subspace_qaoa(
         reps=reps,
         grid_steps=grid_steps,
         evaluations=evaluations,
+        selection_objective=selection_objective,
+        candidate_top_k=candidate_top_k,
         gamma=best_gamma,
         beta=best_beta,
         expected_rate=float(best_expected),
@@ -1302,6 +1326,48 @@ def build_hardware_evidence_status(
     }
 
 
+def build_smaller_hardware_evidence_status() -> dict:
+    return {
+        "status": "measured",
+        "backend_name": "ibm_quebec",
+        "job_id": "d91ttqmu9n7c73ane4jg",
+        "scenario": {
+            "U": 3,
+            "G": 6,
+            "S": 5,
+            "Nt": 4,
+            "n_qubits_full_binary": 18,
+            "Gamma_min": 0.5,
+            "seed": 35,
+        },
+        "hardware_path": "smaller_full_binary_qubo_bridge",
+        "qubit_count": 18,
+        "transpiled_depth": 882,
+        "transpiled_ops": {
+            "sx": 1415,
+            "rz": 1017,
+            "cz": 780,
+            "measure": 18,
+        },
+        "two_qubit_gate_count": 780,
+        "shots": 1024,
+        "raw_feasible_count": 0,
+        "feasible_sample_rate": 0.0,
+        "best_projected_assignment": [1, 0, 5],
+        "best_projected_AR_rate": 1.0,
+        "best_projected_count": 203,
+        "best_projected_sample_rate": 203 / 1024,
+        "random_bitstring_projection_projected_optimum_count_mean": 199.2,
+        "projected_optimum_count_lift_vs_random_mean": 203 / 199.2,
+        "interpretation": (
+            "The smaller 18-qubit IBM run reduced depth/CZ cost versus the old "
+            "24-qubit run and projected to the optimum slightly above the random "
+            "bitstring projection baseline. Raw feasibility remained 0/1024, so "
+            "this is improved hardware execution evidence, not hardware quantum advantage."
+        ),
+    }
+
+
 def run_hardware_demo_candidate(args: argparse.Namespace) -> dict:
     params = SystemParams(
         U=args.hardware_demo_uavs,
@@ -1533,6 +1599,10 @@ def run_benchmark(args: argparse.Namespace) -> dict:
     exact_index, exact = max(enumerate(feasible), key=lambda item: item[1].sum_rate)
     greedy = greedy_assignment(env)
     greedy_polished = local_search(env, greedy)
+    local_top_k = getattr(args, "local_top_k", 8)
+    random_trials = getattr(args, "random_trials", 8)
+    sweep_random_trials = getattr(args, "sweep_random_trials", None) or random_trials
+    sweep_top_k = parse_int_list(getattr(args, "sweep_top_k", "1,2,4,8,16"))
     qaoa_result, probabilities = run_valid_subspace_qaoa(
         feasible,
         exact_index,
@@ -1541,14 +1611,11 @@ def run_benchmark(args: argparse.Namespace) -> dict:
         shots=args.shots,
         seed=args.seed,
         record_diagnostics=True,
+        candidate_top_k=local_top_k,
     )
     top = feasible[qaoa_result.top_index]
     sampled_best = feasible[qaoa_result.sampled_best_index]
     random_baseline = summarize_random_baseline(feasible)
-    local_top_k = getattr(args, "local_top_k", 8)
-    random_trials = getattr(args, "random_trials", 8)
-    sweep_random_trials = getattr(args, "sweep_random_trials", None) or random_trials
-    sweep_top_k = parse_int_list(getattr(args, "sweep_top_k", "1,2,4,8,16"))
     local_comparison = compare_qaoa_vs_random_local_search(
         env,
         feasible,
@@ -1557,6 +1624,29 @@ def run_benchmark(args: argparse.Namespace) -> dict:
         top_k=local_top_k,
         random_trials=random_trials,
         seed=args.seed,
+    )
+    candidate_aware_result, candidate_aware_probabilities = run_valid_subspace_qaoa(
+        feasible,
+        exact_index,
+        reps=args.reps,
+        grid_steps=args.grid_steps,
+        shots=args.shots,
+        seed=args.seed,
+        selection_objective="top_k_raw_rate",
+        candidate_top_k=local_top_k,
+    )
+    candidate_aware_top = feasible[candidate_aware_result.top_index]
+    candidate_aware_sampled_best = feasible[
+        candidate_aware_result.sampled_best_index
+    ]
+    candidate_aware_comparison = compare_qaoa_vs_random_local_search(
+        env,
+        feasible,
+        candidate_aware_probabilities,
+        exact,
+        top_k=local_top_k,
+        random_trials=random_trials,
+        seed=args.seed + 17,
     )
     simulated_annealing = compare_simulated_annealing(
         feasible,
@@ -1639,6 +1729,25 @@ def run_benchmark(args: argparse.Namespace) -> dict:
             "top_probabilities": ordered_probability[: min(args.top_k, len(ordered_probability))],
         },
         "qaoa_top_k_local_search": local_comparison.to_json(exact.sum_rate),
+        "candidate_aware_qaoa": {
+            **asdict(candidate_aware_result),
+            "top_assignment": candidate_aware_top.to_json(exact.sum_rate),
+            "sampled_best_assignment": candidate_aware_sampled_best.to_json(
+                exact.sum_rate
+            ),
+            "expected_AR_rate": (
+                candidate_aware_result.expected_rate / exact.sum_rate
+            ),
+            "shot_success_probability": (
+                1.0 - (1.0 - candidate_aware_result.optimum_probability) ** args.shots
+            ),
+            "shots_for_95pct_success": shots_for_success(
+                candidate_aware_result.optimum_probability
+            ),
+        },
+        "candidate_aware_qaoa_top_k_local_search": (
+            candidate_aware_comparison.to_json(exact.sum_rate)
+        ),
         "simulated_annealing": simulated_annealing.to_json(exact.sum_rate),
         "top_k_sweep": top_k_sweep,
         "probability_noise_robustness": probability_noise_robustness,
@@ -2203,6 +2312,8 @@ def print_summary(results: dict) -> None:
     polished = results["greedy_local_search"]
     qaoa = results["valid_subspace_qaoa"]
     qaoa_local = results["qaoa_top_k_local_search"]
+    candidate_aware = results.get("candidate_aware_qaoa")
+    candidate_aware_local = results.get("candidate_aware_qaoa_top_k_local_search")
     simulated_annealing = results["simulated_annealing"]
     random = results["random_feasible"]
 
@@ -2278,6 +2389,16 @@ def print_summary(results: dict) -> None:
                 qaoa_local["qaoa_local_gain_AR_rate"],
                 qaoa_local["random_raw_mean_AR_rate"],
                 qaoa_local["random_local_gain_mean_AR_rate"],
+            )
+        )
+    if candidate_aware and candidate_aware_local:
+        print(
+            "Candidate-aware QAOA top-{0}: raw AR={1:.3f}, local AR={2:.3f}, "
+            "optimum p={3:.4f}".format(
+                candidate_aware_local["top_k"],
+                candidate_aware_local["qaoa_raw_best"]["AR_rate"],
+                candidate_aware_local["qaoa_best"]["AR_rate"],
+                candidate_aware["optimum_probability"],
             )
         )
     print(
@@ -2524,6 +2645,7 @@ def main() -> None:
         results["scale_challenge"] = run_scale_challenge(args)
     if args.include_hardware_demo_candidate:
         results["hardware_demo_candidate"] = run_hardware_demo_candidate(args)
+        results["smaller_hardware_evidence"] = build_smaller_hardware_evidence_status()
     if args.make_figures:
         results["figures"] = generate_visualizations(results, args.figure_dir)
     output_path = Path(args.output)

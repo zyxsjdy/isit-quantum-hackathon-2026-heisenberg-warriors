@@ -8615,6 +8615,50 @@
         "sum_rate": 7566898.095787916,
         "probability": 0.011795350887916653,
         "AR_rate": 0.9921412175910209
+      },
+      {
+        "assignment": [
+          0,
+          2,
+          3,
+          4
+        ],
+        "sum_rate": 6764457.663221736,
+        "probability": 0.011490560554399428,
+        "AR_rate": 0.8869284583160361
+      },
+      {
+        "assignment": [
+          2,
+          4,
+          5,
+          1
+        ],
+        "sum_rate": 6129601.2455214895,
+        "probability": 0.010665337924432368,
+        "AR_rate": 0.8036886404568251
+      },
+      {
+        "assignment": [
+          2,
+          5,
+          3,
+          4
+        ],
+        "sum_rate": 6691218.855674248,
+        "probability": 0.010467962694525084,
+        "AR_rate": 0.8773256806949753
+      },
+      {
+        "assignment": [
+          0,
+          3,
+          1,
+          2
+        ],
+        "sum_rate": 6951181.289938354,
+        "probability": 0.010115630641197285,
+        "AR_rate": 0.9114109085907078
       }
     ]
   },
@@ -16808,5 +16852,44 @@
     "figures\\qaoa_probability_distribution.png",
     "figures\\qaoa_candidate_efficiency.png",
     "figures\\qaoa_deployment_map.png"
-  ]
+  ],
+  "new_hardware_evidence": {
+    "status": "measured",
+    "backend_name": "ibm_quebec",
+    "job_id": "d91ttqmu9n7c73ane4jg",
+    "scenario": {
+      "U": 3,
+      "G": 6,
+      "S": 5,
+      "Nt": 4,
+      "n_qubits_full_binary": 18,
+      "Gamma_min": 0.5,
+      "seed": 35,
+      "valid_no_colocation_count": 120,
+      "feasible_assignment_count": 22
+    },
+    "hardware_path": "smaller_full_binary_qubo_bridge",
+    "qubit_count": 18,
+    "transpiled_depth": 882,
+    "transpiled_ops": {
+      "sx": 1415,
+      "rz": 1017,
+      "cz": 780,
+      "measure": 18
+    },
+    "two_qubit_gate_count": 780,
+    "shots": 1024,
+    "raw_feasible_count": 0,
+    "feasible_sample_rate": 0.0,
+    "best_projected_assignment": [
+      1,
+      0,
+      5
+    ],
+    "best_projected_AR_rate": 1.0,
+    "best_projected_count": 203,
+    "random_bitstring_projection_projected_optimum_count_mean": 199.2,
+    "projected_optimum_count_lift_vs_random_mean": 1.0190763052208835,
+    "interpretation": "The smaller 18-qubit IBM run reduced depth/CZ cost versus the old 24-qubit run and projected to the optimum slightly above the random bitstring projection baseline. Raw feasibility remained 0/1024, so this is improved hardware execution evidence, not hardware quantum advantage."
+  }
 }

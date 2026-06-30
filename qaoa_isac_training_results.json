@@ -1,0 +1,507 @@
+{
+  "purpose": "Simulation-only QAOA training evidence for ISAC UAV deployment.",
+  "hardware_included": false,
+  "cases": {
+    "headline": {
+      "scenario": {
+        "name": "headline",
+        "U": 4,
+        "G": 6,
+        "S": 6,
+        "Nt": 4,
+        "Gamma_min": 0.5,
+        "feasible_assignment_count": 329
+      },
+      "exact": {
+        "assignment": [
+          2,
+          4,
+          1,
+          3
+        ],
+        "sum_rate": 7626835.738324434,
+        "sinr": [
+          1.458553773237394,
+          2.4269670593149306,
+          1.4540896406198138,
+          0.9602544618651789,
+          1.0006651680160252,
+          1.4374706975556204
+        ],
+        "qubo_energy": 30626027288.23961,
+        "c1": true,
+        "c2": true,
+        "c3": true,
+        "c4": true,
+        "feasible": true,
+        "AR_rate": 1.0
+      },
+      "greedy_AR_rate": 0.8111447260708325,
+      "greedy_local_AR_rate": 0.8111447260708325,
+      "expected_rate_qaoa": {
+        "gamma": 4.71238898038469,
+        "beta": 2.9845130209103035,
+        "expected_AR_rate": 0.8102071450680116,
+        "top_AR_rate": 1.0,
+        "raw_top_k_AR_rate": 1.0,
+        "top_k_local_AR_rate": 1.0,
+        "optimum_probability": 0.01898234716821428
+      },
+      "candidate_aware_qaoa": {
+        "gamma": 4.71238898038469,
+        "beta": 2.9845130209103035,
+        "expected_AR_rate": 0.8102071450680116,
+        "top_AR_rate": 1.0,
+        "raw_top_k_AR_rate": 1.0,
+        "top_k_local_AR_rate": 1.0,
+        "optimum_probability": 0.01898234716821428
+      },
+      "simulated_annealing_mean_AR_rate": 0.992947221343191,
+      "expected_top_k_sweep": [
+        {
+          "top_k": 1,
+          "effective_top_k": 1,
+          "qaoa_raw_AR_rate": 1.0,
+          "qaoa_AR_rate": 1.0,
+          "qaoa_local_gain_AR_rate": 0.0,
+          "qaoa_optimum_hit": true,
+          "qaoa_assignment": [
+            2,
+            4,
+            1,
+            3
+          ],
+          "qaoa_probability_mass": 0.01898234716821428,
+          "random_raw_mean_AR_rate": 0.7656334780395825,
+          "random_raw_std_AR_rate": 0.07597179836534694,
+          "random_raw_worst_AR_rate": 0.546911141190163,
+          "random_raw_best_AR_rate": 0.9074040406246278,
+          "random_local_gain_mean_AR_rate": 0.147936189295688,
+          "random_mean_AR_rate": 0.9135696673352706,
+          "random_std_AR_rate": 0.058505313769315365,
+          "random_worst_AR_rate": 0.8111447260708325,
+          "random_best_AR_rate": 1.0,
+          "random_optimum_hit_rate": 0.140625,
+          "random_exact_candidate_hit_probability": 0.003039513677811523,
+          "qaoa_gain_over_random_mean": 0.08643033266472944,
+          "qaoa_beats_random_trial_rate": 0.859375,
+          "random_trials": 64
+        },
+        {
+          "top_k": 2,
+          "effective_top_k": 2,
+          "qaoa_raw_AR_rate": 1.0,
+          "qaoa_AR_rate": 1.0,
+          "qaoa_local_gain_AR_rate": 0.0,
+          "qaoa_optimum_hit": true,
+          "qaoa_assignment": [
+            2,
+            4,
+            1,
+            3
+          ],
+          "qaoa_probability_mass": 0.03735811253463089,
+          "random_raw_mean_AR_rate": 0.8141320718732888,
+          "random_raw_std_AR_rate": 0.06282761818967826,
+          "random_raw_worst_AR_rate": 0.6655892659586793,
+          "random_raw_best_AR_rate": 1.0,
+          "random_local_gain_mean_AR_rate": 0.13501773507646092,
+          "random_mean_AR_rate": 0.9491498069497497,
+          "random_std_AR_rate": 0.04789763385395898,
+          "random_worst_AR_rate": 0.8288126670243585,
+          "random_best_AR_rate": 1.0,
+          "random_optimum_hit_rate": 0.3125,
+          "random_exact_candidate_hit_probability": 0.006079027355623046,
+          "qaoa_gain_over_random_mean": 0.05085019305025029,
+          "qaoa_beats_random_trial_rate": 0.6875,
+          "random_trials": 64
+        },
+        {
+          "top_k": 4,
+          "effective_top_k": 4,
+          "qaoa_raw_AR_rate": 1.0,
+          "qaoa_AR_rate": 1.0,
+          "qaoa_local_gain_AR_rate": 0.0,
+          "qaoa_optimum_hit": true,
+          "qaoa_assignment": [
+            2,
+            4,
+            1,
+            3
+          ],
+          "qaoa_probability_mass": 0.06949628584089938,
+          "random_raw_mean_AR_rate": 0.8323752009528474,
+          "random_raw_std_AR_rate": 0.046314122009787816,
+          "random_raw_worst_AR_rate": 0.7376672941821404,
+          "random_raw_best_AR_rate": 0.9504628635322853,
+          "random_local_gain_mean_AR_rate": 0.14124064490365398,
+          "random_mean_AR_rate": 0.9736158458565014,
+          "random_std_AR_rate": 0.0385423576705928,
+          "random_worst_AR_rate": 0.8900221135104293,
+          "random_best_AR_rate": 1.0,
+          "random_optimum_hit_rate": 0.421875,
+          "random_exact_candidate_hit_probability": 0.012158054711246202,
+          "qaoa_gain_over_random_mean": 0.026384154143498595,
+          "qaoa_beats_random_trial_rate": 0.578125,
+          "random_trials": 64
+        },
+        {
+          "top_k": 8,
+          "effective_top_k": 8,
+          "qaoa_raw_AR_rate": 1.0,
+          "qaoa_AR_rate": 1.0,
+          "qaoa_local_gain_AR_rate": 0.0,
+          "qaoa_optimum_hit": true,
+          "qaoa_assignment": [
+            2,
+            4,
+            1,
+            3
+          ],
+          "qaoa_probability_mass": 0.11986312556048319,
+          "random_raw_mean_AR_rate": 0.861469659701372,
+          "random_raw_std_AR_rate": 0.038846891940800155,
+          "random_raw_worst_AR_rate": 0.7589234644963077,
+          "random_raw_best_AR_rate": 0.9504628635322853,
+          "random_local_gain_mean_AR_rate": 0.12487804089452015,
+          "random_mean_AR_rate": 0.9863477005958922,
+          "random_std_AR_rate": 0.028546160193988583,
+          "random_worst_AR_rate": 0.9114109085907078,
+          "random_best_AR_rate": 1.0,
+          "random_optimum_hit_rate": 0.546875,
+          "random_exact_candidate_hit_probability": 0.024316109422492405,
+          "qaoa_gain_over_random_mean": 0.013652299404107837,
+          "qaoa_beats_random_trial_rate": 0.453125,
+          "random_trials": 64
+        },
+        {
+          "top_k": 16,
+          "effective_top_k": 16,
+          "qaoa_raw_AR_rate": 1.0,
+          "qaoa_AR_rate": 1.0,
+          "qaoa_local_gain_AR_rate": 0.0,
+          "qaoa_optimum_hit": true,
+          "qaoa_assignment": [
+            2,
+            4,
+            1,
+            3
+          ],
+          "qaoa_probability_mass": 0.20170807286388898,
+          "random_raw_mean_AR_rate": 0.9079251922855904,
+          "random_raw_std_AR_rate": 0.04818245603576192,
+          "random_raw_worst_AR_rate": 0.8003274322584042,
+          "random_raw_best_AR_rate": 1.0,
+          "random_local_gain_mean_AR_rate": 0.09072407948786623,
+          "random_mean_AR_rate": 0.9986492717734567,
+          "random_std_AR_rate": 0.0029648967071534017,
+          "random_worst_AR_rate": 0.9921412175910209,
+          "random_best_AR_rate": 1.0,
+          "random_optimum_hit_rate": 0.828125,
+          "random_exact_candidate_hit_probability": 0.04863221884498481,
+          "qaoa_gain_over_random_mean": 0.0013507282265432519,
+          "qaoa_beats_random_trial_rate": 0.171875,
+          "random_trials": 64
+        }
+      ],
+      "candidate_top_k_sweep": [
+        {
+          "top_k": 1,
+          "effective_top_k": 1,
+          "qaoa_raw_AR_rate": 1.0,
+          "qaoa_AR_rate": 1.0,
+          "random_mean_AR_rate": 0.9160770640124016,
+          "qaoa_gain_over_random_mean": 0.08392293598759837,
+          "random_optimum_hit_rate": 0.140625
+        },
+        {
+          "top_k": 2,
+          "effective_top_k": 2,
+          "qaoa_raw_AR_rate": 1.0,
+          "qaoa_AR_rate": 1.0,
+          "random_mean_AR_rate": 0.9411336594085767,
+          "qaoa_gain_over_random_mean": 0.05886634059142326,
+          "random_optimum_hit_rate": 0.21875
+        },
+        {
+          "top_k": 4,
+          "effective_top_k": 4,
+          "qaoa_raw_AR_rate": 1.0,
+          "qaoa_AR_rate": 1.0,
+          "random_mean_AR_rate": 0.9678818253518763,
+          "qaoa_gain_over_random_mean": 0.03211817464812372,
+          "random_optimum_hit_rate": 0.34375
+        },
+        {
+          "top_k": 8,
+          "effective_top_k": 8,
+          "qaoa_raw_AR_rate": 1.0,
+          "qaoa_AR_rate": 1.0,
+          "random_mean_AR_rate": 0.9874863181988818,
+          "qaoa_gain_over_random_mean": 0.012513681801118226,
+          "random_optimum_hit_rate": 0.53125
+        },
+        {
+          "top_k": 16,
+          "effective_top_k": 16,
+          "qaoa_raw_AR_rate": 1.0,
+          "qaoa_AR_rate": 1.0,
+          "random_mean_AR_rate": 0.9992632391491583,
+          "qaoa_gain_over_random_mean": 0.0007367608508417334,
+          "random_optimum_hit_rate": 0.90625
+        }
+      ]
+    },
+    "scale": {
+      "scenario": {
+        "name": "scale",
+        "U": 4,
+        "G": 7,
+        "S": 7,
+        "Nt": 4,
+        "Gamma_min": 0.5,
+        "feasible_assignment_count": 724
+      },
+      "exact": {
+        "assignment": [
+          0,
+          4,
+          3,
+          5
+        ],
+        "sum_rate": 10723511.77701784,
+        "sinr": [
+          2.5684638268548365,
+          1.3931955563997678,
+          1.6513720518746402,
+          0.9664706264329954,
+          1.4150281119745294,
+          4.574701225812101,
+          1.8205726638425284
+        ],
+        "qubo_energy": 337324675715.2524,
+        "c1": true,
+        "c2": true,
+        "c3": true,
+        "c4": true,
+        "feasible": true,
+        "AR_rate": 1.0
+      },
+      "greedy_AR_rate": 0.8187094798289271,
+      "greedy_local_AR_rate": 0.834588289300535,
+      "expected_rate_qaoa": {
+        "gamma": 6.283185307179586,
+        "beta": 1.780235837034216,
+        "expected_AR_rate": 0.7453323986243987,
+        "top_AR_rate": 0.903137267643852,
+        "raw_top_k_AR_rate": 0.9268329786850189,
+        "top_k_local_AR_rate": 1.0,
+        "optimum_probability": 0.0011668874332354123
+      },
+      "candidate_aware_qaoa": {
+        "gamma": 3.7699111843077517,
+        "beta": 3.141592653589793,
+        "expected_AR_rate": 0.7288898778696696,
+        "top_AR_rate": 0.566584496149174,
+        "raw_top_k_AR_rate": 1.0,
+        "top_k_local_AR_rate": 1.0,
+        "optimum_probability": 0.0040479447124671265
+      },
+      "simulated_annealing_mean_AR_rate": 0.9674671220495664,
+      "expected_top_k_sweep": [
+        {
+          "top_k": 1,
+          "effective_top_k": 1,
+          "qaoa_raw_AR_rate": 0.903137267643852,
+          "qaoa_AR_rate": 0.9076844522932678,
+          "qaoa_local_gain_AR_rate": 0.004547184649415725,
+          "qaoa_optimum_hit": false,
+          "qaoa_assignment": [
+            6,
+            5,
+            3,
+            2
+          ],
+          "qaoa_probability_mass": 0.010641303617734346,
+          "random_raw_mean_AR_rate": 0.7381997731166228,
+          "random_raw_std_AR_rate": 0.0792951222518397,
+          "random_raw_worst_AR_rate": 0.630365251007576,
+          "random_raw_best_AR_rate": 0.9076844522932678,
+          "random_local_gain_mean_AR_rate": 0.14720488287278677,
+          "random_mean_AR_rate": 0.8854046559894095,
+          "random_std_AR_rate": 0.04605347961868247,
+          "random_worst_AR_rate": 0.7908194948213684,
+          "random_best_AR_rate": 0.9429326307462064,
+          "random_optimum_hit_rate": 0.0,
+          "random_exact_candidate_hit_probability": 0.0013812154696132284,
+          "qaoa_gain_over_random_mean": 0.022279796303858235,
+          "qaoa_beats_random_trial_rate": 0.6875,
+          "random_trials": 32
+        },
+        {
+          "top_k": 2,
+          "effective_top_k": 2,
+          "qaoa_raw_AR_rate": 0.903137267643852,
+          "qaoa_AR_rate": 1.0,
+          "qaoa_local_gain_AR_rate": 0.09686273235614795,
+          "qaoa_optimum_hit": true,
+          "qaoa_assignment": [
+            0,
+            4,
+            3,
+            5
+          ],
+          "qaoa_probability_mass": 0.019138996400964274,
+          "random_raw_mean_AR_rate": 0.7685475846246184,
+          "random_raw_std_AR_rate": 0.06894557909474468,
+          "random_raw_worst_AR_rate": 0.6524252051036316,
+          "random_raw_best_AR_rate": 0.9393655964781561,
+          "random_local_gain_mean_AR_rate": 0.1406974577188979,
+          "random_mean_AR_rate": 0.9092450423435162,
+          "random_std_AR_rate": 0.025020571201029372,
+          "random_worst_AR_rate": 0.8246599724168142,
+          "random_best_AR_rate": 0.9429326307462064,
+          "random_optimum_hit_rate": 0.0,
+          "random_exact_candidate_hit_probability": 0.002762430939226568,
+          "qaoa_gain_over_random_mean": 0.09075495765648378,
+          "qaoa_beats_random_trial_rate": 1.0,
+          "random_trials": 32
+        },
+        {
+          "top_k": 4,
+          "effective_top_k": 4,
+          "qaoa_raw_AR_rate": 0.903137267643852,
+          "qaoa_AR_rate": 1.0,
+          "qaoa_local_gain_AR_rate": 0.09686273235614795,
+          "qaoa_optimum_hit": true,
+          "qaoa_assignment": [
+            0,
+            4,
+            3,
+            5
+          ],
+          "qaoa_probability_mass": 0.03365711966760074,
+          "random_raw_mean_AR_rate": 0.7968930097287079,
+          "random_raw_std_AR_rate": 0.03915418403761087,
+          "random_raw_worst_AR_rate": 0.7212243646096361,
+          "random_raw_best_AR_rate": 0.8828412510583626,
+          "random_local_gain_mean_AR_rate": 0.13404427081378223,
+          "random_mean_AR_rate": 0.9309372805424903,
+          "random_std_AR_rate": 0.018365418154683368,
+          "random_worst_AR_rate": 0.8894422030070042,
+          "random_best_AR_rate": 1.0,
+          "random_optimum_hit_rate": 0.03125,
+          "random_exact_candidate_hit_probability": 0.0055248618784530246,
+          "qaoa_gain_over_random_mean": 0.06906271945750975,
+          "qaoa_beats_random_trial_rate": 0.96875,
+          "random_trials": 32
+        },
+        {
+          "top_k": 8,
+          "effective_top_k": 8,
+          "qaoa_raw_AR_rate": 0.9268329786850189,
+          "qaoa_AR_rate": 1.0,
+          "qaoa_local_gain_AR_rate": 0.0731670213149811,
+          "qaoa_optimum_hit": true,
+          "qaoa_assignment": [
+            0,
+            4,
+            3,
+            5
+          ],
+          "qaoa_probability_mass": 0.05903354777076199,
+          "random_raw_mean_AR_rate": 0.857784525741585,
+          "random_raw_std_AR_rate": 0.043714250369468396,
+          "random_raw_worst_AR_rate": 0.7603160384964406,
+          "random_raw_best_AR_rate": 0.9429326307462064,
+          "random_local_gain_mean_AR_rate": 0.0969958391646098,
+          "random_mean_AR_rate": 0.9547803649061948,
+          "random_std_AR_rate": 0.02700548940281904,
+          "random_worst_AR_rate": 0.9076844522932678,
+          "random_best_AR_rate": 1.0,
+          "random_optimum_hit_rate": 0.25,
+          "random_exact_candidate_hit_probability": 0.011049723756906049,
+          "qaoa_gain_over_random_mean": 0.04521963509380522,
+          "qaoa_beats_random_trial_rate": 0.75,
+          "random_trials": 32
+        },
+        {
+          "top_k": 16,
+          "effective_top_k": 16,
+          "qaoa_raw_AR_rate": 0.9268329786850189,
+          "qaoa_AR_rate": 1.0,
+          "qaoa_local_gain_AR_rate": 0.0731670213149811,
+          "qaoa_optimum_hit": true,
+          "qaoa_assignment": [
+            0,
+            4,
+            3,
+            5
+          ],
+          "qaoa_probability_mass": 0.10306612836458198,
+          "random_raw_mean_AR_rate": 0.8632608789545951,
+          "random_raw_std_AR_rate": 0.03149809221568409,
+          "random_raw_worst_AR_rate": 0.7915194959598021,
+          "random_raw_best_AR_rate": 0.9275701031537664,
+          "random_local_gain_mean_AR_rate": 0.1078710269558784,
+          "random_mean_AR_rate": 0.9711319059104735,
+          "random_std_AR_rate": 0.028884875748341456,
+          "random_worst_AR_rate": 0.9393655964781561,
+          "random_best_AR_rate": 1.0,
+          "random_optimum_hit_rate": 0.5,
+          "random_exact_candidate_hit_probability": 0.02209944751381221,
+          "qaoa_gain_over_random_mean": 0.028868094089526508,
+          "qaoa_beats_random_trial_rate": 0.5,
+          "random_trials": 32
+        }
+      ],
+      "candidate_top_k_sweep": [
+        {
+          "top_k": 1,
+          "effective_top_k": 1,
+          "qaoa_raw_AR_rate": 0.566584496149174,
+          "qaoa_AR_rate": 0.8164494829633184,
+          "random_mean_AR_rate": 0.8930489282076383,
+          "qaoa_gain_over_random_mean": -0.07659944524431983,
+          "random_optimum_hit_rate": 0.0
+        },
+        {
+          "top_k": 2,
+          "effective_top_k": 2,
+          "qaoa_raw_AR_rate": 0.9429326307462064,
+          "qaoa_AR_rate": 0.9429326307462064,
+          "random_mean_AR_rate": 0.929626141231806,
+          "qaoa_gain_over_random_mean": 0.013306489514400388,
+          "random_optimum_hit_rate": 0.09375
+        },
+        {
+          "top_k": 4,
+          "effective_top_k": 4,
+          "qaoa_raw_AR_rate": 0.9429326307462064,
+          "qaoa_AR_rate": 0.9429326307462064,
+          "random_mean_AR_rate": 0.9337209959413401,
+          "qaoa_gain_over_random_mean": 0.009211634804866309,
+          "random_optimum_hit_rate": 0.03125
+        },
+        {
+          "top_k": 8,
+          "effective_top_k": 8,
+          "qaoa_raw_AR_rate": 1.0,
+          "qaoa_AR_rate": 1.0,
+          "random_mean_AR_rate": 0.9586439525912628,
+          "qaoa_gain_over_random_mean": 0.04135604740873722,
+          "random_optimum_hit_rate": 0.3125
+        },
+        {
+          "top_k": 16,
+          "effective_top_k": 16,
+          "qaoa_raw_AR_rate": 1.0,
+          "qaoa_AR_rate": 1.0,
+          "random_mean_AR_rate": 0.9603203043545105,
+          "qaoa_gain_over_random_mean": 0.039679695645489454,
+          "random_optimum_hit_rate": 0.3125
+        }
+      ]
+    }
+  }
+}

@@ -6,6 +6,7 @@ import numpy as np
 from qaoa_isac_benchmark import (
     build_full_binary_qaoa_circuit,
     build_environment,
+    build_smaller_hardware_evidence_status,
     build_probability_noise_robustness,
     compare_qaoa_vs_random_local_search,
     circuit_summary,
@@ -13,6 +14,7 @@ from qaoa_isac_benchmark import (
     extract_sampler_counts,
     parse_float_list,
     run_scale_challenge,
+    run_valid_subspace_qaoa,
     summarize_full_binary_angle_probe,
     summarize_random_bitstring_projection_baseline,
 )
@@ -177,6 +179,28 @@ class BenchmarkDiagnosticsTest(unittest.TestCase):
             self.assertLessEqual(probe[key]["projected_optimum_probability"], 1.0)
             self.assertLessEqual(probe[key]["projected_best_AR_rate"], 1.0)
 
+    def test_qaoa_can_train_for_top_k_candidate_quality(self):
+        _, states, _, _ = self.small_case()
+        exact_index, _ = max(enumerate(states), key=lambda item: item[1].sum_rate)
+
+        result, probabilities = run_valid_subspace_qaoa(
+            states,
+            exact_index,
+            reps=1,
+            grid_steps=5,
+            shots=32,
+            seed=7,
+            selection_objective="top_k_raw_rate",
+            candidate_top_k=2,
+        )
+
+        self.assertEqual(result.selection_objective, "top_k_raw_rate")
+        self.assertEqual(result.candidate_top_k, 2)
+        self.assertAlmostEqual(float(probabilities.sum()), 1.0)
+        ordered = np.argsort(-probabilities)[:2]
+        top_k_best = max(states[int(index)].sum_rate for index in ordered)
+        self.assertGreaterEqual(top_k_best, states[result.top_index].sum_rate - 1e-9)
+
     def test_scale_challenge_omits_headline_hardware_evidence(self):
         args = Namespace(
             scale_uavs=2,
@@ -203,6 +227,16 @@ class BenchmarkDiagnosticsTest(unittest.TestCase):
         result = run_scale_challenge(args)
 
         self.assertNotIn("hardware_evidence", result)
+
+    def test_smaller_hardware_evidence_records_completed_ibm_job(self):
+        evidence = build_smaller_hardware_evidence_status()
+
+        self.assertEqual(evidence["job_id"], "d91ttqmu9n7c73ane4jg")
+        self.assertEqual(evidence["qubit_count"], 18)
+        self.assertEqual(evidence["transpiled_depth"], 882)
+        self.assertEqual(evidence["two_qubit_gate_count"], 780)
+        self.assertEqual(evidence["best_projected_count"], 203)
+        self.assertGreater(evidence["projected_optimum_count_lift_vs_random_mean"], 1.0)
 
 
 if __name__ == "__main__":
