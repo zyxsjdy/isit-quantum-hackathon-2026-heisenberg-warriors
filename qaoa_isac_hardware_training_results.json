@@ -1,0 +1,516 @@
+{
+  "created_utc": "2026-06-30T23:21:10.127282+00:00",
+  "purpose": "Real IBM hardware SPSA training for the 18-qubit full-binary QUBO QAOA bridge.",
+  "hardware_training_claim": "Angles are optimized using measured IBM Sampler counts and scaled Ising energy. Projected AR is diagnostic only.",
+  "scenario": {
+    "U": 3,
+    "G": 6,
+    "S": 5,
+    "Nt": 4,
+    "Gamma_min": 0.5,
+    "seed": 35,
+    "full_binary_qubits": 18,
+    "feasible_assignments": 22,
+    "exact_assignment": [
+      1,
+      0,
+      5
+    ],
+    "exact_sum_rate_mbps": 9.668105602122688
+  },
+  "config": {
+    "IBM_INSTANCE_set": false,
+    "FIXED_BACKEND_NAME": null,
+    "TRAINING_SHOTS": 256,
+    "FINAL_SHOTS": 1024,
+    "SPSA_STEPS": 6,
+    "SPSA_SEED": 260630,
+    "SPSA_A0": 0.22,
+    "SPSA_C0": 0.18,
+    "SPSA_ALPHA": 0.602,
+    "SPSA_GAMMA": 0.101,
+    "initial_gamma": 0.8975979010256552,
+    "initial_beta": 2.4683942278205517
+  },
+  "transpilation_summary": {
+    "backend": "ibm_quebec",
+    "depth": 609,
+    "ops": {
+      "sx": 1345,
+      "rz": 1086,
+      "cz": 738,
+      "measure": 18
+    },
+    "two_qubit_gate_count": 738
+  },
+  "initial_hardware_evaluation": {
+    "label": "initial_hardware_baseline/circuit_0",
+    "job_id": "d923dnmu9n7c73anmuqg",
+    "register": "c",
+    "shots": 256,
+    "requested_shots": 256,
+    "gamma": 0.8975979010256552,
+    "beta": 2.4683942278205517,
+    "mean_scaled_ising_energy": -1.166956551676481,
+    "raw_feasible_count": 1,
+    "raw_feasible_rate": 0.00390625,
+    "raw_feasible_best_AR_rate": 0.5411158332891723,
+    "projected_mean_AR_rate": 0.7801986740133418,
+    "best_projected_assignment": [
+      1,
+      0,
+      5
+    ],
+    "best_projected_AR_rate": 1.0,
+    "best_projected_count": 49,
+    "projected_optimum_count": 49,
+    "projected_optimum_rate": 0.19140625
+  },
+  "spsa_log": [
+    {
+      "step": 1,
+      "ak": 0.22,
+      "ck": 0.18,
+      "delta": [
+        1.0,
+        1.0
+      ],
+      "loss_plus": -1.3634366570036718,
+      "loss_minus": -0.8332457188102933,
+      "grad_hat": [
+        -1.472752606092718,
+        -1.472752606092718
+      ],
+      "next_gamma": 1.221603474366053,
+      "next_beta": 2.7923998011609497,
+      "plus_job_id": "d923jmj57qjs73b7bcdg",
+      "minus_job_id": "d923jmj57qjs73b7bcdg"
+    },
+    {
+      "step": 2,
+      "ak": 0.1449447946907554,
+      "ck": 0.16782956755862982,
+      "delta": [
+        -1.0,
+        1.0
+      ],
+      "loss_plus": -0.7204088223507278,
+      "loss_minus": -0.45703912693969284,
+      "grad_hat": [
+        0.784634374151709,
+        -0.784634374151709
+      ],
+      "next_gamma": 1.1078748060973242,
+      "next_beta": 2.9061284694296785,
+      "plus_job_id": "d923mmeu9n7c73anni9g",
+      "minus_job_id": "d923mmeu9n7c73anni9g"
+    },
+    {
+      "step": 3,
+      "ak": 0.11355223468855462,
+      "ck": 0.1610954440842174,
+      "delta": [
+        -1.0,
+        1.0
+      ],
+      "loss_plus": -1.3525449079468927,
+      "loss_minus": -0.5080070704387485,
+      "grad_hat": [
+        2.6212343940236984,
+        -2.6212343940236984
+      ],
+      "next_gamma": 0.810227783013434,
+      "next_beta": 0.06218283892377574,
+      "plus_job_id": "d923no6u9n7c73annjh0",
+      "minus_job_id": "d923no6u9n7c73annjh0"
+    },
+    {
+      "step": 4,
+      "ak": 0.09549542503611472,
+      "ck": 0.15648202081620388,
+      "delta": [
+        1.0,
+        -1.0
+      ],
+      "loss_plus": -0.8800124908324837,
+      "loss_minus": -0.22335945742268126,
+      "grad_hat": [
+        -2.098174058542722,
+        2.098174058542722
+      ],
+      "next_gamma": 1.010593806533721,
+      "next_beta": 3.003409468993282,
+      "plus_job_id": "d923nvr57qjs73b7bju0",
+      "minus_job_id": "d923nvr57qjs73b7bju0"
+    },
+    {
+      "step": 5,
+      "ak": 0.0834915912394788,
+      "ck": 0.15299475224231404,
+      "delta": [
+        1.0,
+        -1.0
+      ],
+      "loss_plus": -0.8974690119361549,
+      "loss_minus": -1.2431725467247534,
+      "grad_hat": [
+        1.129788864395398,
+        -1.129788864395398
+      ],
+      "next_gamma": 0.9162659364807055,
+      "next_beta": 3.0977373390462977,
+      "plus_job_id": "d923ojvqq29s738om5i0",
+      "minus_job_id": "d923ojvqq29s738om5i0"
+    },
+    {
+      "step": 6,
+      "ak": 0.0748127515618592,
+      "ck": 0.15020321509066464,
+      "delta": [
+        -1.0,
+        1.0
+      ],
+      "loss_plus": -1.0169431110812155,
+      "loss_minus": -0.8854964071946639,
+      "grad_hat": [
+        0.43756288374788976,
+        -0.43756288374788976
+      ],
+      "next_gamma": 0.883530653166184,
+      "next_beta": 3.130472622360819,
+      "plus_job_id": "d9241o7ccmks73d65rbg",
+      "minus_job_id": "d9241o7ccmks73d65rbg"
+    }
+  ],
+  "hardware_training_evaluations": [
+    {
+      "label": "initial_hardware_baseline/circuit_0",
+      "job_id": "d923dnmu9n7c73anmuqg",
+      "register": "c",
+      "shots": 256,
+      "requested_shots": 256,
+      "gamma": 0.8975979010256552,
+      "beta": 2.4683942278205517,
+      "mean_scaled_ising_energy": -1.166956551676481,
+      "raw_feasible_count": 1,
+      "raw_feasible_rate": 0.00390625,
+      "raw_feasible_best_AR_rate": 0.5411158332891723,
+      "projected_mean_AR_rate": 0.7801986740133418,
+      "best_projected_assignment": [
+        1,
+        0,
+        5
+      ],
+      "best_projected_AR_rate": 1.0,
+      "best_projected_count": 49,
+      "projected_optimum_count": 49,
+      "projected_optimum_rate": 0.19140625
+    },
+    {
+      "label": "spsa_step_1/circuit_0",
+      "job_id": "d923jmj57qjs73b7bcdg",
+      "register": "c",
+      "shots": 256,
+      "requested_shots": 256,
+      "gamma": 1.0775979010256551,
+      "beta": 2.648394227820552,
+      "mean_scaled_ising_energy": -1.3634366570036718,
+      "raw_feasible_count": 2,
+      "raw_feasible_rate": 0.0078125,
+      "raw_feasible_best_AR_rate": 0.8469180911409141,
+      "projected_mean_AR_rate": 0.794847737502416,
+      "best_projected_assignment": [
+        1,
+        0,
+        5
+      ],
+      "best_projected_AR_rate": 1.0,
+      "best_projected_count": 60,
+      "projected_optimum_count": 60,
+      "projected_optimum_rate": 0.234375
+    },
+    {
+      "label": "spsa_step_1/circuit_1",
+      "job_id": "d923jmj57qjs73b7bcdg",
+      "register": "c",
+      "shots": 256,
+      "requested_shots": 256,
+      "gamma": 0.7175979010256552,
+      "beta": 2.2883942278205516,
+      "mean_scaled_ising_energy": -0.8332457188102933,
+      "raw_feasible_count": 0,
+      "raw_feasible_rate": 0.0,
+      "raw_feasible_best_AR_rate": null,
+      "projected_mean_AR_rate": 0.7747436184439417,
+      "best_projected_assignment": [
+        1,
+        0,
+        5
+      ],
+      "best_projected_AR_rate": 1.0,
+      "best_projected_count": 37,
+      "projected_optimum_count": 37,
+      "projected_optimum_rate": 0.14453125
+    },
+    {
+      "label": "spsa_step_2/circuit_0",
+      "job_id": "d923mmeu9n7c73anni9g",
+      "register": "c",
+      "shots": 256,
+      "requested_shots": 256,
+      "gamma": 1.0537739068074232,
+      "beta": 2.9602293687195793,
+      "mean_scaled_ising_energy": -0.7204088223507278,
+      "raw_feasible_count": 0,
+      "raw_feasible_rate": 0.0,
+      "raw_feasible_best_AR_rate": null,
+      "projected_mean_AR_rate": 0.8312910105694227,
+      "best_projected_assignment": [
+        1,
+        0,
+        5
+      ],
+      "best_projected_AR_rate": 1.0,
+      "best_projected_count": 83,
+      "projected_optimum_count": 83,
+      "projected_optimum_rate": 0.32421875
+    },
+    {
+      "label": "spsa_step_2/circuit_1",
+      "job_id": "d923mmeu9n7c73anni9g",
+      "register": "c",
+      "shots": 256,
+      "requested_shots": 256,
+      "gamma": 1.389433041924683,
+      "beta": 2.62457023360232,
+      "mean_scaled_ising_energy": -0.45703912693969284,
+      "raw_feasible_count": 1,
+      "raw_feasible_rate": 0.00390625,
+      "raw_feasible_best_AR_rate": 0.7720388943006253,
+      "projected_mean_AR_rate": 0.8277527924021552,
+      "best_projected_assignment": [
+        1,
+        0,
+        5
+      ],
+      "best_projected_AR_rate": 1.0,
+      "best_projected_count": 72,
+      "projected_optimum_count": 72,
+      "projected_optimum_rate": 0.28125
+    },
+    {
+      "label": "spsa_step_3/circuit_0",
+      "job_id": "d923no6u9n7c73annjh0",
+      "register": "c",
+      "shots": 256,
+      "requested_shots": 256,
+      "gamma": 0.9467793620131069,
+      "beta": 3.067223913513896,
+      "mean_scaled_ising_energy": -1.3525449079468927,
+      "raw_feasible_count": 0,
+      "raw_feasible_rate": 0.0,
+      "raw_feasible_best_AR_rate": null,
+      "projected_mean_AR_rate": 0.7823027347019382,
+      "best_projected_assignment": [
+        1,
+        0,
+        5
+      ],
+      "best_projected_AR_rate": 1.0,
+      "best_projected_count": 47,
+      "projected_optimum_count": 47,
+      "projected_optimum_rate": 0.18359375
+    },
+    {
+      "label": "spsa_step_3/circuit_1",
+      "job_id": "d923no6u9n7c73annjh0",
+      "register": "c",
+      "shots": 256,
+      "requested_shots": 256,
+      "gamma": 1.2689702501815416,
+      "beta": 2.745033025345461,
+      "mean_scaled_ising_energy": -0.5080070704387485,
+      "raw_feasible_count": 1,
+      "raw_feasible_rate": 0.00390625,
+      "raw_feasible_best_AR_rate": 0.7850496238526347,
+      "projected_mean_AR_rate": 0.8265779846681734,
+      "best_projected_assignment": [
+        1,
+        0,
+        5
+      ],
+      "best_projected_AR_rate": 1.0,
+      "best_projected_count": 73,
+      "projected_optimum_count": 73,
+      "projected_optimum_rate": 0.28515625
+    },
+    {
+      "label": "spsa_step_4/circuit_0",
+      "job_id": "d923nvr57qjs73b7bju0",
+      "register": "c",
+      "shots": 256,
+      "requested_shots": 256,
+      "gamma": 0.9667098038296379,
+      "beta": 3.047293471697365,
+      "mean_scaled_ising_energy": -0.8800124908324837,
+      "raw_feasible_count": 1,
+      "raw_feasible_rate": 0.00390625,
+      "raw_feasible_best_AR_rate": 0.7720388943006253,
+      "projected_mean_AR_rate": 0.8337072033628803,
+      "best_projected_assignment": [
+        1,
+        0,
+        5
+      ],
+      "best_projected_AR_rate": 1.0,
+      "best_projected_count": 85,
+      "projected_optimum_count": 85,
+      "projected_optimum_rate": 0.33203125
+    },
+    {
+      "label": "spsa_step_4/circuit_1",
+      "job_id": "d923nvr57qjs73b7bju0",
+      "register": "c",
+      "shots": 256,
+      "requested_shots": 256,
+      "gamma": 0.6537457621972301,
+      "beta": 0.21866485973997962,
+      "mean_scaled_ising_energy": -0.22335945742268126,
+      "raw_feasible_count": 0,
+      "raw_feasible_rate": 0.0,
+      "raw_feasible_best_AR_rate": null,
+      "projected_mean_AR_rate": 0.7914822573546801,
+      "best_projected_assignment": [
+        5,
+        0,
+        1
+      ],
+      "best_projected_AR_rate": 0.8113052488487413,
+      "best_projected_count": 48,
+      "projected_optimum_count": 41,
+      "projected_optimum_rate": 0.16015625
+    },
+    {
+      "label": "spsa_step_5/circuit_0",
+      "job_id": "d923ojvqq29s738om5i0",
+      "register": "c",
+      "shots": 256,
+      "requested_shots": 256,
+      "gamma": 1.163588558776035,
+      "beta": 2.850414716750968,
+      "mean_scaled_ising_energy": -0.8974690119361549,
+      "raw_feasible_count": 1,
+      "raw_feasible_rate": 0.00390625,
+      "raw_feasible_best_AR_rate": 0.7029970938028183,
+      "projected_mean_AR_rate": 0.8314442596743817,
+      "best_projected_assignment": [
+        1,
+        0,
+        5
+      ],
+      "best_projected_AR_rate": 1.0,
+      "best_projected_count": 83,
+      "projected_optimum_count": 83,
+      "projected_optimum_rate": 0.32421875
+    },
+    {
+      "label": "spsa_step_5/circuit_1",
+      "job_id": "d923ojvqq29s738om5i0",
+      "register": "c",
+      "shots": 256,
+      "requested_shots": 256,
+      "gamma": 0.8575990542914069,
+      "beta": 0.014811567645802715,
+      "mean_scaled_ising_energy": -1.2431725467247534,
+      "raw_feasible_count": 2,
+      "raw_feasible_rate": 0.0078125,
+      "raw_feasible_best_AR_rate": 0.8113052488487413,
+      "projected_mean_AR_rate": 0.7933734211312883,
+      "best_projected_assignment": [
+        1,
+        0,
+        5
+      ],
+      "best_projected_AR_rate": 1.0,
+      "best_projected_count": 47,
+      "projected_optimum_count": 47,
+      "projected_optimum_rate": 0.18359375
+    },
+    {
+      "label": "spsa_step_6/circuit_0",
+      "job_id": "d9241o7ccmks73d65rbg",
+      "register": "c",
+      "shots": 256,
+      "requested_shots": 256,
+      "gamma": 0.7660627213900408,
+      "beta": 0.10634790054716925,
+      "mean_scaled_ising_energy": -1.0169431110812155,
+      "raw_feasible_count": 0,
+      "raw_feasible_rate": 0.0,
+      "raw_feasible_best_AR_rate": null,
+      "projected_mean_AR_rate": 0.7819946548813981,
+      "best_projected_assignment": [
+        1,
+        0,
+        5
+      ],
+      "best_projected_AR_rate": 1.0,
+      "best_projected_count": 35,
+      "projected_optimum_count": 35,
+      "projected_optimum_rate": 0.13671875
+    },
+    {
+      "label": "spsa_step_6/circuit_1",
+      "job_id": "d9241o7ccmks73d65rbg",
+      "register": "c",
+      "shots": 256,
+      "requested_shots": 256,
+      "gamma": 1.0664691515713702,
+      "beta": 2.947534123955633,
+      "mean_scaled_ising_energy": -0.8854964071946639,
+      "raw_feasible_count": 1,
+      "raw_feasible_rate": 0.00390625,
+      "raw_feasible_best_AR_rate": 0.7029970938028183,
+      "projected_mean_AR_rate": 0.8200820345158489,
+      "best_projected_assignment": [
+        1,
+        0,
+        5
+      ],
+      "best_projected_AR_rate": 1.0,
+      "best_projected_count": 69,
+      "projected_optimum_count": 69,
+      "projected_optimum_rate": 0.26953125
+    }
+  ],
+  "best_observed_training_evaluation": {
+    "label": "spsa_step_1/circuit_0",
+    "job_id": "d923jmj57qjs73b7bcdg",
+    "register": "c",
+    "shots": 256,
+    "requested_shots": 256,
+    "gamma": 1.0775979010256551,
+    "beta": 2.648394227820552,
+    "mean_scaled_ising_energy": -1.3634366570036718,
+    "raw_feasible_count": 2,
+    "raw_feasible_rate": 0.0078125,
+    "raw_feasible_best_AR_rate": 0.8469180911409141,
+    "projected_mean_AR_rate": 0.794847737502416,
+    "best_projected_assignment": [
+      1,
+      0,
+      5
+    ],
+    "best_projected_AR_rate": 1.0,
+    "best_projected_count": 60,
+    "projected_optimum_count": 60,
+    "projected_optimum_rate": 0.234375
+  },
+  "final_hardware_evaluation": null,
+  "figure_paths": [
+    "figures\\hardware_training_energy.png",
+    "figures\\hardware_training_projected_quality.png",
+    "figures\\hardware_training_angles.png",
+    "figures\\hardware_training_spsa_trace.png"
+  ]
+}
