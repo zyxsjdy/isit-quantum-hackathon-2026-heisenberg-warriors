@@ -3,9 +3,11 @@ import unittest
 import numpy as np
 
 from qaoa_isac_benchmark import (
+    build_full_binary_qaoa_circuit,
     build_environment,
     build_probability_noise_robustness,
     compare_qaoa_vs_random_local_search,
+    circuit_summary,
     enumerate_assignments,
     extract_sampler_counts,
     parse_float_list,
@@ -107,6 +109,17 @@ class BenchmarkDiagnosticsTest(unittest.TestCase):
             data = FakeDataBin()
 
         self.assertEqual(extract_sampler_counts([FakePubResult()]), {"11": 4})
+
+    def test_full_binary_circuit_summary_reports_hardware_shape(self):
+        params = SystemParams(U=2, G=3, S=2, Nt=2, Gamma_min=0.0)
+        env = build_environment(params, seed=5, quiet=True)
+
+        circuit = build_full_binary_qaoa_circuit(env, gamma=0.2, beta=0.3)
+        summary = circuit_summary(circuit)
+
+        self.assertEqual(summary["num_qubits"], 6)
+        self.assertGreater(summary["depth"], 0)
+        self.assertIn("measure", summary["ops"])
 
 
 if __name__ == "__main__":

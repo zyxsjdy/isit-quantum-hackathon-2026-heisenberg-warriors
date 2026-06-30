@@ -334,6 +334,74 @@ def extract_sampler_counts(
     )
 
 
+def scaled_ising_terms(env: ISACEnvironment) -> tuple[np.ndarray, np.ndarray, float]:
+    h = np.array(env.h_bias, dtype=float)
+    j = np.array(env.J, dtype=float)
+    scale = max(float(np.max(np.abs(h))), float(np.max(np.abs(j))), 1.0)
+    return h / scale, j / scale, scale
+
+
+def build_full_binary_qaoa_circuit(
+    env: ISACEnvironment,
+    gamma: float,
+    beta: float,
+    *,
+    reps: int = 1,
+    measure: bool = True,
+    coupling_threshold: float = 0.0,
+) -> Any:
+    from qiskit import QuantumCircuit
+
+    n_qubits = env.n_qubits
+    circuit = QuantumCircuit(n_qubits, n_qubits if measure else 0)
+    h, j, scale = scaled_ising_terms(env)
+
+    circuit.h(range(n_qubits))
+    for _ in range(reps):
+        for i, coeff in enumerate(h):
+            if abs(coeff) > 1e-12:
+                circuit.rz(2.0 * gamma * coeff, i)
+        for i in range(n_qubits):
+            for k in range(i + 1, n_qubits):
+                coeff = j[i, k]
+                if abs(coeff) <= max(coupling_threshold, 1e-12):
+                    continue
+                circuit.cx(i, k)
+                circuit.rz(2.0 * gamma * coeff, k)
+                circuit.cx(i, k)
+        for i in range(n_qubits):
+            circuit.rx(2.0 * beta, i)
+
+    if measure:
+        circuit.measure(range(n_qubits), range(n_qubits))
+    circuit.metadata = {
+        "problem": "QAOA-ISAC full-binary QUBO",
+        "U": env.params.U,
+        "G": env.params.G,
+        "S": env.params.S,
+        "Gamma_min": env.params.Gamma_min,
+        "qubo_scale": scale,
+        "gamma": gamma,
+        "beta": beta,
+        "reps": reps,
+        "coupling_threshold": coupling_threshold,
+    }
+    return circuit
+
+
+def circuit_summary(circuit: Any) -> dict:
+    ops = {str(name): int(count) for name, count in circuit.count_ops().items()}
+    two_qubit_names = {"cx", "cz", "ecr", "swap", "rzz"}
+    return {
+        "num_qubits": int(circuit.num_qubits),
+        "depth": int(circuit.depth()),
+        "ops": ops,
+        "two_qubit_gate_count": int(
+            sum(count for name, count in ops.items() if name in two_qubit_names)
+        ),
+    }
+
+
 def enumerate_assignments(env: ISACEnvironment, require_c3: bool) -> list[AssignmentEval]:
     rows: list[AssignmentEval] = []
     for assignment in permutations(range(env.params.G), env.params.U):
@@ -879,6 +947,87 @@ def build_hardware_evidence_status() -> dict:
             "Raw feasible sampling was very low; feasible projection recovered "
             "the exact optimum, so this is hardware feasibility evidence rather "
             "than hardware quantum-advantage evidence."
+        ),
+    }
+
+
+def run_hardware_demo_candidate(args: argparse.Namespace) -> dict:
+    params = SystemParams(
+        U=args.hardware_demo_uavs,
+        G=args.hardware_demo_grid_points,
+        S=args.hardware_demo_survivors,
+        Nt=args.hardware_demo_antennas,
+        Gamma_min=args.hardware_demo_gamma_min,
+    )
+    env = build_environment(params, seed=args.hardware_demo_seed, quiet=not args.verbose)
+    valid_no_c3 = enumerate_assignments(env, require_c3=False)
+    feasible = enumerate_assignments(env, require_c3=True)
+    if len(feasible) < 2:
+        raise RuntimeError("Hardware demo candidate needs at least two feasible states.")
+
+    exact_index, exact = max(enumerate(feasible), key=lambda item: item[1].sum_rate)
+    greedy = greedy_assignment(env)
+    greedy_polished = local_search(env, greedy) if greedy.feasible else greedy
+    qaoa_result, probabilities = run_valid_subspace_qaoa(
+        feasible,
+        exact_index,
+        reps=1,
+        grid_steps=args.hardware_demo_grid_steps,
+        shots=args.hardware_demo_shots,
+        seed=args.hardware_demo_seed,
+    )
+    qaoa_top = feasible[qaoa_result.top_index]
+    local_comparison = compare_qaoa_vs_random_local_search(
+        env,
+        feasible,
+        probabilities,
+        exact,
+        top_k=args.hardware_demo_top_k,
+        random_trials=args.hardware_demo_random_trials,
+        seed=args.hardware_demo_seed,
+    )
+    circuit = build_full_binary_qaoa_circuit(
+        env,
+        gamma=qaoa_result.gamma,
+        beta=qaoa_result.beta,
+        reps=args.hardware_demo_reps,
+        measure=True,
+        coupling_threshold=args.hardware_demo_coupling_threshold,
+    )
+
+    return {
+        "purpose": (
+            "Smaller full-binary QUBO hardware candidate intended to reduce "
+            "qubit count and circuit depth before another IBM submission."
+        ),
+        "scenario": {
+            "U": params.U,
+            "G": params.G,
+            "S": params.S,
+            "Nt": params.Nt,
+            "n_qubits_full_binary": params.U * params.G,
+            "Gamma_min": params.Gamma_min,
+            "seed": args.hardware_demo_seed,
+            "valid_no_colocation_count": len(valid_no_c3),
+            "feasible_assignment_count": len(feasible),
+        },
+        "exact": exact.to_json(exact.sum_rate),
+        "greedy": greedy.to_json(exact.sum_rate),
+        "greedy_local_search": greedy_polished.to_json(exact.sum_rate),
+        "valid_subspace_qaoa": {
+            **asdict(qaoa_result),
+            "top_assignment": qaoa_top.to_json(exact.sum_rate),
+            "expected_AR_rate": qaoa_result.expected_rate / exact.sum_rate,
+            "shots_for_95pct_success": shots_for_success(
+                qaoa_result.optimum_probability
+            ),
+        },
+        "qaoa_top_k_local_search": local_comparison.to_json(exact.sum_rate),
+        "full_binary_circuit": circuit_summary(circuit),
+        "recommended_next_step": (
+            "Submit this smaller candidate only after checking transpiled depth "
+            "on the selected backend; then compare raw feasibility and projected "
+            "AR against the 24-qubit ibm_quebec job."
         ),
     }
 
@@ -1873,6 +2022,33 @@ def print_summary(results: dict) -> None:
             )
         )
 
+    hardware_demo = results.get("hardware_demo_candidate")
+    if hardware_demo:
+        scenario = hardware_demo["scenario"]
+        circuit = hardware_demo["full_binary_circuit"]
+        qaoa = hardware_demo["valid_subspace_qaoa"]
+        qaoa_local = hardware_demo["qaoa_top_k_local_search"]
+        print()
+        print(
+            "Hardware demo candidate: U={U}, G={G}, S={S}, feasible={feasible_assignment_count}, "
+            "full-binary qubits={n_qubits_full_binary}".format(**scenario)
+        )
+        print(
+            "Hardware demo circuit: depth={depth}, two-qubit gates={two_qubit_gate_count}, ops={ops}".format(
+                **circuit
+            )
+        )
+        print(
+            "Hardware demo AR: greedy={0:.3f}, QAOA top={1:.3f}, "
+            "QAOA top-{2}+local={3:.3f}, optimum probability={4:.3f}".format(
+                hardware_demo["greedy"]["AR_rate"],
+                qaoa["top_assignment"]["AR_rate"],
+                qaoa_local["top_k"],
+                qaoa_local["qaoa_best"]["AR_rate"],
+                qaoa["optimum_probability"],
+            )
+        )
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -1933,6 +2109,19 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--scale-sa-trials", type=int, default=16)
     parser.add_argument("--scale-sa-start-temperature", type=float, default=0.25)
     parser.add_argument("--scale-sa-end-temperature", type=float, default=0.01)
+    parser.add_argument("--include-hardware-demo-candidate", action="store_true")
+    parser.add_argument("--hardware-demo-uavs", type=int, default=3)
+    parser.add_argument("--hardware-demo-grid-points", type=int, default=6)
+    parser.add_argument("--hardware-demo-survivors", type=int, default=5)
+    parser.add_argument("--hardware-demo-antennas", type=int, default=4)
+    parser.add_argument("--hardware-demo-gamma-min", type=float, default=0.5)
+    parser.add_argument("--hardware-demo-seed", type=int, default=35)
+    parser.add_argument("--hardware-demo-grid-steps", type=int, default=31)
+    parser.add_argument("--hardware-demo-shots", type=int, default=1024)
+    parser.add_argument("--hardware-demo-top-k", type=int, default=4)
+    parser.add_argument("--hardware-demo-random-trials", type=int, default=32)
+    parser.add_argument("--hardware-demo-reps", type=int, default=1)
+    parser.add_argument("--hardware-demo-coupling-threshold", type=float, default=0.0)
     parser.add_argument("--output", default="qaoa_isac_benchmark_results.json")
     parser.add_argument("--make-figures", action="store_true")
     parser.add_argument("--figure-dir", default="figures")
@@ -1947,6 +2136,8 @@ def main() -> None:
         results["suite"] = run_suite(args)
     if args.include_scale_challenge:
         results["scale_challenge"] = run_scale_challenge(args)
+    if args.include_hardware_demo_candidate:
+        results["hardware_demo_candidate"] = run_hardware_demo_candidate(args)
     if args.make_figures:
         results["figures"] = generate_visualizations(results, args.figure_dir)
     output_path = Path(args.output)

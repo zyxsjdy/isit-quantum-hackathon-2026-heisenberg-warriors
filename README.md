@@ -29,6 +29,8 @@ The current benchmark evidence is regenerated in
 | Headline `U=4, G=6, S=6` | Simulated annealing | 0.993 mean | 0.719 optimum-hit rate across trials |
 | IBM `ibm_quebec` `U=4, G=6, S=6` | Raw feasible hardware sample | 0.829 best | 1/1024 raw samples were feasible |
 | IBM `ibm_quebec` `U=4, G=6, S=6` | Projected hardware candidate | 1.000 best | Full-binary QUBO bridge plus feasible projection |
+| Next hardware candidate `U=3, G=6, S=5` | QAOA top state | 1.000 | 18 qubits, 22 feasible assignments |
+| Next hardware candidate `U=3, G=6, S=5` | Full-binary circuit | - | Depth 103, 306 CX gates before ISA transpilation |
 | Multi-seed suite `U=3, G=6, S=5` | QAOA raw top-8 | 0.994 mean | 25 evaluated seeds |
 | Multi-seed suite `U=3, G=6, S=5` | QAOA top-8 + local search | 0.999 mean | 23/25 optimum hits |
 | Multi-seed suite `U=3, G=6, S=5` | Simulated annealing | 0.986 mean | 4/25 optimum hits |
@@ -154,7 +156,7 @@ presentation. Those names are not inferred in this README.
 Use the qiskit environment that was used to generate the checked-in results:
 
 ```powershell
-& 'C:\Users\harry\.conda\envs\qiskit\python.exe' -X utf8 .\qaoa_isac_benchmark.py --include-suite --include-scale-challenge --grid-steps 81 --random-trials 64 --sweep-random-trials 64 --sa-trials 32 --suite-random-trials 32 --suite-sweep-random-trials 32 --suite-sa-trials 16 --make-figures
+& 'C:\Users\harry\.conda\envs\qiskit\python.exe' -X utf8 .\qaoa_isac_benchmark.py --include-suite --include-scale-challenge --include-hardware-demo-candidate --grid-steps 81 --random-trials 64 --sweep-random-trials 64 --sa-trials 32 --suite-random-trials 32 --suite-sweep-random-trials 32 --suite-sa-trials 16 --make-figures
 ```
 
 Quick syntax check:
@@ -191,6 +193,13 @@ already feasible, with AR 0.829. Feasible projection/post-processing recovered
 the exact optimum assignment `[2, 4, 1, 3]` with AR 1.000 from the measured
 samples. Present this as real-hardware execution evidence, not hardware
 quantum-advantage evidence.
+
+The next hardware-improvement target is a smaller `U=3, G=6, S=5`, seed `35`
+case recorded in `hardware_demo_candidate`. It uses 18 full-binary qubits and
+the pre-ISA circuit has depth 103 with 306 CX gates, down from the 24-qubit
+headline hardware bridge with depth 139 and 552 CX gates before ISA
+transpilation. On the valid-subspace simulator this candidate has greedy AR
+0.785, QAOA top-state AR 1.000, and optimum probability 0.358.
 
 See `docs/ibm-hardware-run.md` for the exact install, credential, and notebook
 cells to change when submitting a hardware job.

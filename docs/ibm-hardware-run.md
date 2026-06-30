@@ -105,6 +105,35 @@ feasibility was very low. The optimum recovery came after feasible projection,
 so this is hardware feasibility evidence, not a hardware quantum-advantage
 claim.
 
+## Next Smaller Hardware Target
+
+The first hardware-improvement target is a smaller full-binary QUBO bridge:
+
+| Field | Value |
+| --- | --- |
+| Scenario | `U=3, G=6, S=5` |
+| Seed | `35` |
+| Full-binary qubits | 18 |
+| Feasible assignments | 22 |
+| Greedy AR | 0.785 |
+| Valid-subspace QAOA top AR | 1.000 |
+| Valid-subspace QAOA optimum probability | 0.358 |
+| Shots for 95% optimum sample in simulator | 7 |
+| Pre-ISA circuit depth | 103 |
+| Pre-ISA two-qubit gates | 306 `cx` gates |
+
+This is not measured hardware evidence yet. It is the next candidate to submit
+because it reduces the previous 24-qubit bridge from depth 139 and 552 CX gates
+before ISA transpilation to depth 103 and 306 CX gates. Before submitting, run
+the notebook hardware cells with this scenario and check the selected backend's
+ISA depth and two-qubit gate count.
+
+Regenerate the candidate evidence with:
+
+```powershell
+& 'C:\Users\harry\.conda\envs\qiskit\python.exe' -X utf8 .\qaoa_isac_benchmark.py --include-hardware-demo-candidate
+```
+
 ## What The Limitation Means
 
 The main winning result uses a valid-subspace QAOA simulator:

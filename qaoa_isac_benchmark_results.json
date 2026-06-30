@@ -14162,6 +14162,201 @@
       }
     ]
   },
+  "hardware_demo_candidate": {
+    "purpose": "Smaller full-binary QUBO hardware candidate intended to reduce qubit count and circuit depth before another IBM submission.",
+    "scenario": {
+      "U": 3,
+      "G": 6,
+      "S": 5,
+      "Nt": 4,
+      "n_qubits_full_binary": 18,
+      "Gamma_min": 0.5,
+      "seed": 35,
+      "valid_no_colocation_count": 120,
+      "feasible_assignment_count": 22
+    },
+    "exact": {
+      "assignment": [
+        1,
+        0,
+        5
+      ],
+      "sum_rate": 9668105.602122689,
+      "sinr": [
+        1.1644928564025956,
+        1.0844693285721252,
+        6.675359707728294,
+        2.999607353509374,
+        4.873838822271663
+      ],
+      "qubo_energy": 55269710438.95545,
+      "c1": true,
+      "c2": true,
+      "c3": true,
+      "c4": true,
+      "feasible": true,
+      "AR_rate": 1.0
+    },
+    "greedy": {
+      "assignment": [
+        5,
+        4,
+        0
+      ],
+      "sum_rate": 7589942.666313967,
+      "sinr": [
+        1.3594409330823534,
+        2.2400893921772287,
+        3.0705269695707043,
+        1.676353629026197,
+        1.3133437585684826
+      ],
+      "qubo_energy": 28010441027.83848,
+      "c1": true,
+      "c2": true,
+      "c3": true,
+      "c4": true,
+      "feasible": true,
+      "AR_rate": 0.7850496238526347
+    },
+    "greedy_local_search": {
+      "assignment": [
+        5,
+        4,
+        0
+      ],
+      "sum_rate": 7589942.666313967,
+      "sinr": [
+        1.3594409330823534,
+        2.2400893921772287,
+        3.0705269695707043,
+        1.676353629026197,
+        1.3133437585684826
+      ],
+      "qubo_energy": 28010441027.83848,
+      "c1": true,
+      "c2": true,
+      "c3": true,
+      "c4": true,
+      "feasible": true,
+      "AR_rate": 0.7850496238526347
+    },
+    "valid_subspace_qaoa": {
+      "reps": 1,
+      "grid_steps": 31,
+      "evaluations": 961,
+      "gamma": 4.39822971502571,
+      "beta": 2.3038346126325147,
+      "expected_rate": 7948380.674914285,
+      "top_index": 4,
+      "top_probability": 0.35821310167838477,
+      "optimum_probability": 0.35821310167838477,
+      "sampled_best_index": 4,
+      "sampled_best_count": 351,
+      "shots": 1024,
+      "best_so_far_trace": [],
+      "angle_landscape": [],
+      "gamma_grid": [],
+      "beta_grid": [],
+      "top_assignment": {
+        "assignment": [
+          1,
+          0,
+          5
+        ],
+        "sum_rate": 9668105.602122689,
+        "sinr": [
+          1.1644928564025956,
+          1.0844693285721252,
+          6.675359707728294,
+          2.999607353509374,
+          4.873838822271663
+        ],
+        "qubo_energy": 55269710438.95545,
+        "c1": true,
+        "c2": true,
+        "c3": true,
+        "c4": true,
+        "feasible": true,
+        "AR_rate": 1.0
+      },
+      "expected_AR_rate": 0.8221238991399898,
+      "shots_for_95pct_success": 7
+    },
+    "qaoa_top_k_local_search": {
+      "top_k": 4,
+      "qaoa_raw_best": {
+        "assignment": [
+          1,
+          0,
+          5
+        ],
+        "sum_rate": 9668105.602122689,
+        "sinr": [
+          1.1644928564025956,
+          1.0844693285721252,
+          6.675359707728294,
+          2.999607353509374,
+          4.873838822271663
+        ],
+        "qubo_energy": 55269710438.95545,
+        "c1": true,
+        "c2": true,
+        "c3": true,
+        "c4": true,
+        "feasible": true,
+        "AR_rate": 1.0
+      },
+      "qaoa_best": {
+        "assignment": [
+          1,
+          0,
+          5
+        ],
+        "sum_rate": 9668105.602122689,
+        "sinr": [
+          1.1644928564025956,
+          1.0844693285721252,
+          6.675359707728294,
+          2.999607353509374,
+          4.873838822271663
+        ],
+        "qubo_energy": 55269710438.95545,
+        "c1": true,
+        "c2": true,
+        "c3": true,
+        "c4": true,
+        "feasible": true,
+        "AR_rate": 1.0
+      },
+      "qaoa_local_gain_AR_rate": 0.0,
+      "random_raw_mean_AR_rate": 0.8333084738758246,
+      "random_raw_std_AR_rate": 0.08944212866729453,
+      "random_raw_worst_AR_rate": 0.6658643483413195,
+      "random_raw_best_AR_rate": 1.0,
+      "random_local_gain_mean_AR_rate": 0.12890804907841852,
+      "random_mean_AR_rate": 0.9622165229542432,
+      "random_std_AR_rate": 0.08101534276566709,
+      "random_worst_AR_rate": 0.7156880556999441,
+      "random_best_AR_rate": 1.0,
+      "random_optimum_hit_rate": 0.8125,
+      "qaoa_beats_random_trial_rate": 0.1875,
+      "random_trials": 32
+    },
+    "full_binary_circuit": {
+      "num_qubits": 18,
+      "depth": 103,
+      "ops": {
+        "cx": 306,
+        "rz": 171,
+        "h": 18,
+        "rx": 18,
+        "measure": 18
+      },
+      "two_qubit_gate_count": 306
+    },
+    "recommended_next_step": "Submit this smaller candidate only after checking transpiled depth on the selected backend; then compare raw feasibility and projected AR against the 24-qubit ibm_quebec job."
+  },
   "figures": [
     "figures\\qaoa_convergence.png",
     "figures\\qaoa_angle_landscape.png",
