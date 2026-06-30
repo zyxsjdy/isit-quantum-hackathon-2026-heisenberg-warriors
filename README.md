@@ -198,6 +198,7 @@ Quick syntax check:
 | `qaoa_isac_env.py` | Physical channel model, constraints, and QUBO construction |
 | `qaoa_isac_notebook.ipynb` | Original end-to-end notebook, preserved |
 | `qaoa_isac_training_notebook.ipynb` | Primary simulation-only QAOA training and multi-seed evidence notebook |
+| `qaoa_isac_hardware_training_notebook.ipynb` | Separate opt-in notebook for real IBM hardware SPSA training of the 18-qubit full-binary QUBO bridge |
 | `qaoa_isac_training_results.json` | Exported results from the training notebook |
 | `qaoa_isac_submission_evidence.json` | Distilled final-submission evidence and safe claims |
 | `docs/final-technical-presentation-brief.md` | Slide-ready technical explanation, speaker notes, and hardware-run checklist |

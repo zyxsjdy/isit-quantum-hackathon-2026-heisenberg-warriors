@@ -396,6 +396,9 @@ Recommended only if time allows.
 
 ### Speaker Notes
 
+Use `qaoa_isac_hardware_training_notebook.ipynb` for this path. It is separate
+from the old benchmark notebook and uses real IBM `SamplerV2` counts.
+
 Training on hardware is not the same as running trained angles on hardware. It
 requires many queued jobs. A fair hardware-training objective should use the
 measured QUBO energy or feasibility-aware projected energy, not the known exact

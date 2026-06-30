@@ -96,6 +96,36 @@ If the transpiled depth or two-qubit count is much worse than the reference
 run, do not submit. Wait for a better backend selection or keep the current
 hardware evidence.
 
+## Real-Hardware Angle Training
+
+Use `qaoa_isac_hardware_training_notebook.ipynb` for actual hardware training.
+It is intentionally separate from `qaoa_isac_benchmark.ipynb`.
+
+That notebook trains `gamma,beta` with SPSA using real IBM `SamplerV2` counts.
+The training loss is measured scaled Ising/QUBO energy from raw hardware
+bitstrings. Projected AR is reported only as a diagnostic.
+
+Default behavior is safe:
+
+```python
+RUN_HARDWARE_TRAINING = False
+RUN_FINAL_HARDWARE_EVAL = False
+```
+
+To train on hardware:
+
+1. Open `qaoa_isac_hardware_training_notebook.ipynb`.
+2. Run through the transpilation check.
+3. Submit only if depth and two-qubit count are not much worse than the
+   previous 18-qubit reference run.
+4. Set `RUN_HARDWARE_TRAINING = True`.
+5. Run the SPSA training cell.
+6. After training, set `RUN_FINAL_HARDWARE_EVAL = True`.
+7. Save `qaoa_isac_hardware_training_results.json`.
+
+With the default `SPSA_STEPS = 6`, training submits six IBM jobs. Each job
+contains two circuits: one positive and one negative SPSA perturbation.
+
 ## Hardware Evidence To Capture
 
 Do not update the headline claim until the real job returns. When it does,
