@@ -78,7 +78,11 @@ class LocalSearchComparison:
     top_k: int
     qaoa_best: AssignmentEval
     random_mean_ar: float
+    random_std_ar: float
+    random_worst_ar: float
+    random_best_ar: float
     random_optimum_hit_rate: float
+    qaoa_beats_random_trial_rate: float
     random_trials: int
 
     def to_json(self, exact_rate: float) -> dict:
@@ -86,7 +90,11 @@ class LocalSearchComparison:
             "top_k": self.top_k,
             "qaoa_best": self.qaoa_best.to_json(exact_rate),
             "random_mean_AR_rate": self.random_mean_ar,
+            "random_std_AR_rate": self.random_std_ar,
+            "random_worst_AR_rate": self.random_worst_ar,
+            "random_best_AR_rate": self.random_best_ar,
             "random_optimum_hit_rate": self.random_optimum_hit_rate,
+            "qaoa_beats_random_trial_rate": self.qaoa_beats_random_trial_rate,
             "random_trials": self.random_trials,
         }
 
@@ -348,6 +356,40 @@ def summarize_random_baseline(states: Sequence[AssignmentEval]) -> dict:
     }
 
 
+def parse_int_list(value: str | Sequence[int]) -> list[int]:
+    if isinstance(value, str):
+        raw_values = [part.strip() for part in value.split(",")]
+        parsed = [int(part) for part in raw_values if part]
+    else:
+        parsed = [int(part) for part in value]
+
+    seen: set[int] = set()
+    result: list[int] = []
+    for item in parsed:
+        if item <= 0:
+            raise ValueError("Top-k sweep values must be positive integers.")
+        if item not in seen:
+            seen.add(item)
+            result.append(item)
+    return result
+
+
+def random_top_k_exact_hit_probability(
+    states: Sequence[AssignmentEval],
+    exact_rate: float,
+    top_k: int,
+) -> float:
+    population = len(states)
+    draws = min(top_k, population)
+    optimal_count = sum(row.sum_rate >= exact_rate - 1e-9 for row in states)
+    if optimal_count <= 0:
+        return 0.0
+    if draws >= population:
+        return 1.0
+    misses = math.comb(population - optimal_count, draws) / math.comb(population, draws)
+    return 1.0 - misses
+
+
 def compare_qaoa_vs_random_local_search(
     env: ISACEnvironment,
     states: Sequence[AssignmentEval],
@@ -358,13 +400,18 @@ def compare_qaoa_vs_random_local_search(
     random_trials: int,
     seed: int,
 ) -> LocalSearchComparison:
+    if random_trials <= 0:
+        raise ValueError("random_trials must be positive.")
+
     ordered = np.argsort(-probabilities)
     qaoa_candidates = [states[int(i)] for i in ordered[: min(top_k, len(states))]]
     qaoa_best = best_local_search_from_candidates(env, qaoa_candidates)
+    qaoa_ar = qaoa_best.sum_rate / exact.sum_rate
 
     rng = np.random.default_rng(seed + 2026)
     random_ars: list[float] = []
     random_hits = 0
+    random_losses = 0
     for _ in range(random_trials):
         size = min(top_k, len(states))
         random_indices = rng.choice(len(states), size=size, replace=False)
@@ -374,14 +421,71 @@ def compare_qaoa_vs_random_local_search(
         random_ars.append(ar_rate)
         if ar_rate >= 1.0 - 1e-9:
             random_hits += 1
+        if qaoa_ar > ar_rate + 1e-9:
+            random_losses += 1
+
+    random_array = np.array(random_ars, dtype=float)
 
     return LocalSearchComparison(
         top_k=top_k,
         qaoa_best=qaoa_best,
-        random_mean_ar=float(np.mean(random_ars)),
+        random_mean_ar=float(random_array.mean()),
+        random_std_ar=float(random_array.std(ddof=0)),
+        random_worst_ar=float(random_array.min()),
+        random_best_ar=float(random_array.max()),
         random_optimum_hit_rate=random_hits / random_trials,
+        qaoa_beats_random_trial_rate=random_losses / random_trials,
         random_trials=random_trials,
     )
+
+
+def build_top_k_sweep(
+    env: ISACEnvironment,
+    states: Sequence[AssignmentEval],
+    probabilities: np.ndarray,
+    exact: AssignmentEval,
+    *,
+    top_k_values: Sequence[int],
+    random_trials: int,
+    seed: int,
+) -> list[dict]:
+    ordered = np.argsort(-probabilities)
+    rows: list[dict] = []
+    for requested_top_k in parse_int_list(top_k_values):
+        effective_top_k = min(requested_top_k, len(states))
+        comparison = compare_qaoa_vs_random_local_search(
+            env,
+            states,
+            probabilities,
+            exact,
+            top_k=effective_top_k,
+            random_trials=random_trials,
+            seed=seed + requested_top_k * 7919,
+        )
+        qaoa_ar = comparison.qaoa_best.sum_rate / exact.sum_rate
+        qaoa_top_indices = ordered[:effective_top_k]
+        rows.append(
+            {
+                "top_k": requested_top_k,
+                "effective_top_k": effective_top_k,
+                "qaoa_AR_rate": qaoa_ar,
+                "qaoa_optimum_hit": qaoa_ar >= 1.0 - 1e-9,
+                "qaoa_assignment": list(comparison.qaoa_best.assignment),
+                "qaoa_probability_mass": float(probabilities[qaoa_top_indices].sum()),
+                "random_mean_AR_rate": comparison.random_mean_ar,
+                "random_std_AR_rate": comparison.random_std_ar,
+                "random_worst_AR_rate": comparison.random_worst_ar,
+                "random_best_AR_rate": comparison.random_best_ar,
+                "random_optimum_hit_rate": comparison.random_optimum_hit_rate,
+                "random_exact_candidate_hit_probability": (
+                    random_top_k_exact_hit_probability(states, exact.sum_rate, effective_top_k)
+                ),
+                "qaoa_gain_over_random_mean": qaoa_ar - comparison.random_mean_ar,
+                "qaoa_beats_random_trial_rate": comparison.qaoa_beats_random_trial_rate,
+                "random_trials": random_trials,
+            }
+        )
+    return rows
 
 
 def shots_for_success(probability: float, target: float = 0.95) -> int:
@@ -422,6 +526,8 @@ def run_benchmark(args: argparse.Namespace) -> dict:
     random_baseline = summarize_random_baseline(feasible)
     local_top_k = getattr(args, "local_top_k", 8)
     random_trials = getattr(args, "random_trials", 8)
+    sweep_random_trials = getattr(args, "sweep_random_trials", None) or random_trials
+    sweep_top_k = parse_int_list(getattr(args, "sweep_top_k", "1,2,4,8,16"))
     local_comparison = compare_qaoa_vs_random_local_search(
         env,
         feasible,
@@ -429,6 +535,15 @@ def run_benchmark(args: argparse.Namespace) -> dict:
         exact,
         top_k=local_top_k,
         random_trials=random_trials,
+        seed=args.seed,
+    )
+    top_k_sweep = build_top_k_sweep(
+        env,
+        feasible,
+        probabilities,
+        exact,
+        top_k_values=sweep_top_k,
+        random_trials=sweep_random_trials,
         seed=args.seed,
     )
     qaoa_success_probability = 1.0 - (1.0 - qaoa_result.optimum_probability) ** args.shots
@@ -482,6 +597,7 @@ def run_benchmark(args: argparse.Namespace) -> dict:
             "top_probabilities": ordered_probability[: min(args.top_k, len(ordered_probability))],
         },
         "qaoa_top_k_local_search": local_comparison.to_json(exact.sum_rate),
+        "top_k_sweep": top_k_sweep,
         "random_feasible": {
             **random_baseline,
             "mean_AR_rate": random_baseline["mean_rate"] / exact.sum_rate,
@@ -534,6 +650,73 @@ def summarize_suite_rows(rows: Sequence[dict]) -> dict:
     }
 
 
+def summarize_suite_top_k_sweep(rows: Sequence[dict]) -> list[dict]:
+    top_k_values = sorted(
+        {
+            sweep_row["top_k"]
+            for row in rows
+            for sweep_row in row.get("top_k_sweep", [])
+        }
+    )
+    summaries: list[dict] = []
+    for top_k in top_k_values:
+        sweep_rows = [
+            sweep_row
+            for row in rows
+            for sweep_row in row.get("top_k_sweep", [])
+            if sweep_row["top_k"] == top_k
+        ]
+        if not sweep_rows:
+            continue
+        summaries.append(
+            {
+                "top_k": top_k,
+                "count": len(sweep_rows),
+                "mean_effective_top_k": float(
+                    np.mean([row["effective_top_k"] for row in sweep_rows])
+                ),
+                "mean_qaoa_AR_rate": float(
+                    np.mean([row["qaoa_AR_rate"] for row in sweep_rows])
+                ),
+                "qaoa_optimum_hits": int(
+                    sum(row["qaoa_optimum_hit"] for row in sweep_rows)
+                ),
+                "mean_qaoa_probability_mass": float(
+                    np.mean([row["qaoa_probability_mass"] for row in sweep_rows])
+                ),
+                "mean_random_AR_rate": float(
+                    np.mean([row["random_mean_AR_rate"] for row in sweep_rows])
+                ),
+                "mean_random_optimum_hit_rate": float(
+                    np.mean([row["random_optimum_hit_rate"] for row in sweep_rows])
+                ),
+                "mean_random_exact_candidate_hit_probability": float(
+                    np.mean(
+                        [
+                            row["random_exact_candidate_hit_probability"]
+                            for row in sweep_rows
+                        ]
+                    )
+                ),
+                "mean_qaoa_gain_over_random": float(
+                    np.mean([row["qaoa_gain_over_random_mean"] for row in sweep_rows])
+                ),
+                "qaoa_beats_random_mean_count": int(
+                    sum(
+                        row["qaoa_AR_rate"] > row["random_mean_AR_rate"] + 1e-9
+                        for row in sweep_rows
+                    )
+                ),
+                "mean_qaoa_beats_random_trial_rate": float(
+                    np.mean(
+                        [row["qaoa_beats_random_trial_rate"] for row in sweep_rows]
+                    )
+                ),
+            }
+        )
+    return summaries
+
+
 def parse_seed_range(seed_range: str) -> list[int]:
     if ":" in seed_range:
         start_text, end_text = seed_range.split(":", 1)
@@ -547,6 +730,8 @@ def run_suite(args: argparse.Namespace) -> dict:
     seeds = parse_seed_range(getattr(args, "suite_seed_range", "1:60"))
     top_k = getattr(args, "suite_top_k", 8)
     random_trials = getattr(args, "suite_random_trials", 8)
+    sweep_random_trials = getattr(args, "suite_sweep_random_trials", None) or random_trials
+    sweep_top_k = parse_int_list(getattr(args, "suite_sweep_top_k", "1,2,4,8,16"))
     stress_gap = getattr(args, "suite_stress_gap", 0.10)
 
     rows: list[dict] = []
@@ -589,6 +774,15 @@ def run_suite(args: argparse.Namespace) -> dict:
             random_trials=random_trials,
             seed=seed,
         )
+        top_k_sweep = build_top_k_sweep(
+            env,
+            feasible,
+            probabilities,
+            exact,
+            top_k_values=sweep_top_k,
+            random_trials=sweep_random_trials,
+            seed=seed,
+        )
         rows.append(
             {
                 "seed": seed,
@@ -607,6 +801,7 @@ def run_suite(args: argparse.Namespace) -> dict:
                 "qaoa_optimum_probability": qaoa_result.optimum_probability,
                 "qaoa_top_assignment": list(qaoa_top.assignment),
                 "qaoa_top_k_assignment": list(local_comparison.qaoa_best.assignment),
+                "top_k_sweep": top_k_sweep,
             }
         )
 
@@ -624,10 +819,14 @@ def run_suite(args: argparse.Namespace) -> dict:
             "seed_range": getattr(args, "suite_seed_range", "1:60"),
             "top_k": top_k,
             "random_trials": random_trials,
+            "sweep_top_k": sweep_top_k,
+            "sweep_random_trials": sweep_random_trials,
             "stress_gap": stress_gap,
         },
         "all": summarize_suite_rows(rows),
         "stress": summarize_suite_rows(stress_rows),
+        "top_k_sweep": summarize_suite_top_k_sweep(rows),
+        "stress_top_k_sweep": summarize_suite_top_k_sweep(stress_rows),
         "rows": rows,
         "skipped": skipped,
     }
@@ -707,6 +906,21 @@ def print_summary(results: dict) -> None:
         )
     )
 
+    top_k_sweep = results.get("top_k_sweep", [])
+    if top_k_sweep:
+        print()
+        print("Top-K candidate efficiency sweep")
+        print("K    QAOA AR   Random AR   QAOA gain   QAOA hit   Random hit")
+        for row in top_k_sweep:
+            print(
+                "{top_k:<4d} {qaoa_AR_rate:8.3f}   {random_mean_AR_rate:9.3f}   "
+                "{qaoa_gain_over_random_mean:9.3f}   {qaoa_hit:8s}   "
+                "{random_optimum_hit_rate:10.3f}".format(
+                    **row,
+                    qaoa_hit="yes" if row["qaoa_optimum_hit"] else "no",
+                )
+            )
+
     suite = results.get("suite")
     if suite:
         scenario = suite["scenario"]
@@ -734,6 +948,24 @@ def print_summary(results: dict) -> None:
                 **stress
             )
         )
+        suite_sweep = suite.get("top_k_sweep", [])
+        if suite_sweep:
+            print("Suite top-K sweep: K, effective K, QAOA AR, random AR, QAOA hits, gain")
+            for row in suite_sweep:
+                print(
+                    "  {top_k} ({mean_effective_top_k:.1f}): {mean_qaoa_AR_rate:.3f}, "
+                    "{mean_random_AR_rate:.3f}, {qaoa_optimum_hits}/{count}, "
+                    "{mean_qaoa_gain_over_random:.3f}".format(**row)
+                )
+        stress_sweep = suite.get("stress_top_k_sweep", [])
+        if stress_sweep:
+            print("Stress top-K sweep: K, effective K, QAOA AR, random AR, QAOA hits, gain")
+            for row in stress_sweep:
+                print(
+                    "  {top_k} ({mean_effective_top_k:.1f}): {mean_qaoa_AR_rate:.3f}, "
+                    "{mean_random_AR_rate:.3f}, {qaoa_optimum_hits}/{count}, "
+                    "{mean_qaoa_gain_over_random:.3f}".format(**row)
+                )
 
 
 def parse_args() -> argparse.Namespace:
@@ -750,6 +982,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--top-k", type=int, default=8)
     parser.add_argument("--local-top-k", type=int, default=8)
     parser.add_argument("--random-trials", type=int, default=8)
+    parser.add_argument("--sweep-top-k", default="1,2,4,8,16")
+    parser.add_argument("--sweep-random-trials", type=int, default=None)
     parser.add_argument("--include-suite", action="store_true")
     parser.add_argument("--suite-seed-range", default="1:60")
     parser.add_argument("--suite-uavs", type=int, default=3)
@@ -761,6 +995,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--suite-shots", type=int, default=1024)
     parser.add_argument("--suite-top-k", type=int, default=8)
     parser.add_argument("--suite-random-trials", type=int, default=8)
+    parser.add_argument("--suite-sweep-top-k", default="1,2,4,8,16")
+    parser.add_argument("--suite-sweep-random-trials", type=int, default=None)
     parser.add_argument("--suite-stress-gap", type=float, default=0.10)
     parser.add_argument("--output", default="qaoa_isac_benchmark_results.json")
     parser.add_argument("--verbose", action="store_true")
