@@ -270,6 +270,322 @@ def summarize_hardware_counts(
     return summary
 
 
+def _project_bit_matrix_to_feasible_indices(
+    bit_matrix: np.ndarray,
+    feasible_vectors: np.ndarray,
+    feasible_rates: np.ndarray,
+) -> np.ndarray:
+    hamming = np.count_nonzero(
+        bit_matrix[:, None, :] != feasible_vectors[None, :, :],
+        axis=2,
+    )
+    nearest_distance = hamming.min(axis=1)
+    tie_broken_rates = np.where(
+        hamming == nearest_distance[:, None],
+        feasible_rates[None, :],
+        -math.inf,
+    )
+    return np.argmax(tie_broken_rates, axis=1)
+
+
+def _array_stats(values: Sequence[float]) -> dict[str, float]:
+    array = np.array(values, dtype=float)
+    return {
+        "mean": float(array.mean()),
+        "std": float(array.std(ddof=0)),
+        "worst": float(array.min()),
+        "best": float(array.max()),
+        "p05": float(np.quantile(array, 0.05)),
+        "p50": float(np.quantile(array, 0.50)),
+        "p95": float(np.quantile(array, 0.95)),
+    }
+
+
+def summarize_random_bitstring_projection_baseline(
+    feasible_rows: Sequence[AssignmentEval],
+    env: ISACEnvironment,
+    exact_rate: float,
+    *,
+    shots: int,
+    random_trials: int,
+    seed: int,
+) -> dict:
+    if not feasible_rows:
+        raise ValueError("At least one feasible row is required.")
+    if exact_rate <= 0.0:
+        raise ValueError("exact_rate must be positive.")
+    if shots <= 0:
+        raise ValueError("shots must be positive.")
+    if random_trials <= 0:
+        raise ValueError("random_trials must be positive.")
+
+    feasible_vectors = np.stack(
+        [assignment_vector(row, env) for row in feasible_rows],
+        axis=0,
+    ).astype(np.int8)
+    feasible_rates = np.array([row.sum_rate for row in feasible_rows], dtype=float)
+    optimum_mask = feasible_rates >= exact_rate - 1e-9
+
+    rng = np.random.default_rng(seed)
+    optimum_rates: list[float] = []
+    best_ars: list[float] = []
+    mean_ars: list[float] = []
+    for _ in range(random_trials):
+        bit_matrix = rng.integers(
+            0,
+            2,
+            size=(shots, env.n_qubits),
+            dtype=np.int8,
+        )
+        projected_indices = _project_bit_matrix_to_feasible_indices(
+            bit_matrix,
+            feasible_vectors,
+            feasible_rates,
+        )
+        projected_ars = feasible_rates[projected_indices] / exact_rate
+        optimum_rates.append(float(np.count_nonzero(optimum_mask[projected_indices]) / shots))
+        best_ars.append(float(projected_ars.max()))
+        mean_ars.append(float(projected_ars.mean()))
+
+    optimum_stats = _array_stats(optimum_rates)
+    best_ar_stats = _array_stats(best_ars)
+    mean_ar_stats = _array_stats(mean_ars)
+
+    return {
+        "model": "uniform_full_binary_bitstrings_then_nearest_feasible_projection",
+        "n_qubits": int(env.n_qubits),
+        "feasible_assignment_count": int(len(feasible_rows)),
+        "optimal_feasible_assignment_count": int(np.count_nonzero(optimum_mask)),
+        "shots_per_trial": int(shots),
+        "random_trials": int(random_trials),
+        "seed": int(seed),
+        "projected_optimum_rate_mean": optimum_stats["mean"],
+        "projected_optimum_rate_std": optimum_stats["std"],
+        "projected_optimum_rate_worst": optimum_stats["worst"],
+        "projected_optimum_rate_best": optimum_stats["best"],
+        "projected_optimum_rate_p05": optimum_stats["p05"],
+        "projected_optimum_rate_p50": optimum_stats["p50"],
+        "projected_optimum_rate_p95": optimum_stats["p95"],
+        "projected_optimum_count_mean": optimum_stats["mean"] * shots,
+        "projected_best_AR_rate_mean": best_ar_stats["mean"],
+        "projected_best_AR_rate_std": best_ar_stats["std"],
+        "projected_best_AR_rate_worst": best_ar_stats["worst"],
+        "projected_best_AR_rate_best": best_ar_stats["best"],
+        "projected_mean_AR_rate_mean": mean_ar_stats["mean"],
+        "projected_mean_AR_rate_std": mean_ar_stats["std"],
+        "projected_mean_AR_rate_worst": mean_ar_stats["worst"],
+        "projected_mean_AR_rate_best": mean_ar_stats["best"],
+    }
+
+
+def _full_binary_basis_bits(n_qubits: int, max_qubits: int) -> tuple[np.ndarray, np.ndarray]:
+    if n_qubits <= 0:
+        raise ValueError("n_qubits must be positive.")
+    if n_qubits > max_qubits:
+        raise ValueError(
+            f"Full-binary statevector probe is capped at {max_qubits} qubits."
+        )
+
+    indices = np.arange(1 << n_qubits, dtype=np.uint32)
+    bit_positions = np.arange(n_qubits, dtype=np.uint32)
+    bits = ((indices[:, None] >> bit_positions) & 1).astype(np.int8)
+    return indices, bits
+
+
+def _apply_rx_mixer(state: np.ndarray, beta: float, n_qubits: int) -> None:
+    cosine = math.cos(beta)
+    sine = math.sin(beta)
+    for qubit in range(n_qubits):
+        step = 1 << qubit
+        period = step << 1
+        view = state.reshape(-1, period)
+        zero = view[:, :step].copy()
+        one = view[:, step:].copy()
+        view[:, :step] = cosine * zero - 1j * sine * one
+        view[:, step:] = -1j * sine * zero + cosine * one
+
+
+def _full_binary_probabilities(
+    phase_values: np.ndarray,
+    *,
+    n_qubits: int,
+    gamma: float,
+    beta: float,
+) -> np.ndarray:
+    state = np.exp(-1j * gamma * phase_values).astype(np.complex128)
+    state /= math.sqrt(len(state))
+    _apply_rx_mixer(state, beta, n_qubits)
+    return np.abs(state) ** 2
+
+
+def _nearest_feasible_indices_for_basis(
+    bits: np.ndarray,
+    feasible_vectors: np.ndarray,
+    feasible_rates: np.ndarray,
+) -> np.ndarray:
+    hamming = np.count_nonzero(
+        bits[:, None, :] != feasible_vectors[None, :, :],
+        axis=2,
+    )
+    nearest_distance = hamming.min(axis=1)
+    tie_broken_rates = np.where(
+        hamming == nearest_distance[:, None],
+        feasible_rates[None, :],
+        -math.inf,
+    )
+    return np.argmax(tie_broken_rates, axis=1)
+
+
+def _basis_indices_for_assignment_vectors(vectors: np.ndarray) -> np.ndarray:
+    bit_positions = np.arange(vectors.shape[1], dtype=np.uint64)
+    powers = np.left_shift(np.uint64(1), bit_positions)
+    return vectors.astype(np.uint64) @ powers
+
+
+def _full_binary_metric_row(
+    probabilities: np.ndarray,
+    qubo_values: np.ndarray,
+    feasible_rows: Sequence[AssignmentEval],
+    feasible_rates: np.ndarray,
+    feasible_bit_indices: np.ndarray,
+    nearest_feasible_indices: np.ndarray,
+    exact_rate: float,
+    *,
+    gamma: float,
+    beta: float,
+) -> dict:
+    projected_probabilities = np.bincount(
+        nearest_feasible_indices,
+        weights=probabilities,
+        minlength=len(feasible_rows),
+    )
+    optimum_mask = feasible_rates >= exact_rate - 1e-9
+    projected_best_index = int(np.argmax(projected_probabilities))
+    projected_optimum_probability = float(projected_probabilities[optimum_mask].sum())
+    raw_feasible_probability = float(probabilities[feasible_bit_indices].sum())
+    raw_optimum_probability = float(probabilities[feasible_bit_indices[optimum_mask]].sum())
+
+    return {
+        "gamma": float(gamma),
+        "beta": float(beta),
+        "expected_qubo_energy": float(probabilities @ qubo_values),
+        "raw_feasible_probability": raw_feasible_probability,
+        "raw_optimum_probability": raw_optimum_probability,
+        "projected_optimum_probability": projected_optimum_probability,
+        "shots_for_95pct_projected_optimum": shots_for_success(
+            projected_optimum_probability
+        ),
+        "projected_best_assignment": list(
+            feasible_rows[projected_best_index].assignment
+        ),
+        "projected_best_probability": float(
+            projected_probabilities[projected_best_index]
+        ),
+        "projected_best_AR_rate": (
+            feasible_rates[projected_best_index] / exact_rate
+        ),
+    }
+
+
+def summarize_full_binary_angle_probe(
+    env: ISACEnvironment,
+    feasible_rows: Sequence[AssignmentEval],
+    exact: AssignmentEval,
+    *,
+    reference_gamma: float,
+    reference_beta: float,
+    grid_steps: int,
+    max_qubits: int = 20,
+) -> dict:
+    if not feasible_rows:
+        raise ValueError("At least one feasible row is required.")
+    if grid_steps < 2:
+        raise ValueError("grid_steps must be at least 2.")
+
+    _, bits = _full_binary_basis_bits(env.n_qubits, max_qubits)
+    z_values = (1 - 2 * bits).astype(np.float64)
+    h_terms, j_terms, _ = scaled_ising_terms(env)
+    upper_j_terms = np.triu(j_terms, 1)
+    phase_values = z_values @ h_terms + np.einsum(
+        "bi,ij,bj->b",
+        z_values,
+        upper_j_terms,
+        z_values,
+        optimize=True,
+    )
+    float_bits = bits.astype(np.float64)
+    qubo_values = np.einsum(
+        "bi,ij,bj->b",
+        float_bits,
+        env.Q,
+        float_bits,
+        optimize=True,
+    )
+    feasible_vectors = np.stack(
+        [assignment_vector(row, env) for row in feasible_rows],
+        axis=0,
+    ).astype(np.int8)
+    feasible_rates = np.array([row.sum_rate for row in feasible_rows], dtype=float)
+    feasible_bit_indices = _basis_indices_for_assignment_vectors(feasible_vectors)
+    nearest_feasible_indices = _nearest_feasible_indices_for_basis(
+        bits,
+        feasible_vectors,
+        feasible_rates,
+    )
+
+    def metrics(gamma: float, beta: float) -> dict:
+        probabilities = _full_binary_probabilities(
+            phase_values,
+            n_qubits=env.n_qubits,
+            gamma=gamma,
+            beta=beta,
+        )
+        return _full_binary_metric_row(
+            probabilities,
+            qubo_values,
+            feasible_rows,
+            feasible_rates,
+            feasible_bit_indices,
+            nearest_feasible_indices,
+            exact.sum_rate,
+            gamma=gamma,
+            beta=beta,
+        )
+
+    reference_metrics = metrics(reference_gamma, reference_beta)
+    best_energy_metrics: dict | None = None
+    for gamma in np.linspace(0.0, 2.0 * math.pi, grid_steps):
+        for beta in np.linspace(0.0, math.pi, grid_steps):
+            row = metrics(float(gamma), float(beta))
+            if (
+                best_energy_metrics is None
+                or row["expected_qubo_energy"]
+                < best_energy_metrics["expected_qubo_energy"]
+            ):
+                best_energy_metrics = row
+
+    if best_energy_metrics is None:
+        raise RuntimeError("Full-binary angle probe did not evaluate any angles.")
+
+    return {
+        "model": "statevector_p1_full_binary_qubo_grid",
+        "objective": "minimize_expected_full_binary_qubo_energy",
+        "grid_steps": int(grid_steps),
+        "evaluations": int(grid_steps * grid_steps),
+        "max_qubits": int(max_qubits),
+        "n_qubits": int(env.n_qubits),
+        "feasible_assignment_count": int(len(feasible_rows)),
+        "reference_angles": reference_metrics,
+        "qubo_energy_optimized_angles": best_energy_metrics,
+        "interpretation": (
+            "This probe optimizes the hardware-executable full-binary QUBO "
+            "circuit, then evaluates raw feasibility and nearest-feasible "
+            "projection. It is a simulator check for the next hardware target, "
+            "not measured hardware evidence."
+        ),
+    }
+
+
 def _databin_field_names(data: Any) -> list[str]:
     names: list[str] = []
     if hasattr(data, "keys"):
@@ -873,7 +1189,28 @@ def build_probability_noise_robustness(
     }
 
 
-def build_hardware_evidence_status() -> dict:
+def build_hardware_evidence_status(
+    feasible_rows: Sequence[AssignmentEval],
+    env: ISACEnvironment,
+    exact_rate: float,
+    *,
+    random_projection_trials: int = 256,
+    random_projection_seed: int = 260630,
+) -> dict:
+    shots = 1024
+    projected_optimum_count = 16
+    random_projection_baseline = summarize_random_bitstring_projection_baseline(
+        feasible_rows,
+        env,
+        exact_rate,
+        shots=shots,
+        random_trials=random_projection_trials,
+        seed=random_projection_seed,
+    )
+    random_optimum_count_mean = random_projection_baseline[
+        "projected_optimum_count_mean"
+    ]
+
     return {
         "status": "measured",
         "headline_source": "valid_subspace_qaoa_simulator",
@@ -901,17 +1238,30 @@ def build_hardware_evidence_status() -> dict:
         "cx_count": 0,
         "cz_count": 1572,
         "two_qubit_gate_count": 1572,
-        "shots": 1024,
+        "shots": shots,
         "distinct_bitstrings": 1022,
         "raw_feasible_count": 1,
-        "feasible_sample_rate": 1.0 / 1024.0,
+        "feasible_sample_rate": 1.0 / shots,
         "best_feasible_bitstring": "001000000001100000000010",
         "best_feasible_assignment": [1, 5, 0, 3],
         "best_hardware_AR_rate": 0.8294928238727217,
         "best_projected_source_bitstring": "111001101011010010010100",
         "best_projected_assignment": [2, 4, 1, 3],
         "best_projected_AR_rate": 1.0,
-        "best_projected_count": 16,
+        "best_projected_count": projected_optimum_count,
+        "best_projected_sample_rate": projected_optimum_count / shots,
+        "random_bitstring_projection_baseline": random_projection_baseline,
+        "projected_optimum_count_lift_vs_random_mean": (
+            projected_optimum_count / random_optimum_count_mean
+            if random_optimum_count_mean > 0.0
+            else math.inf
+        ),
+        "projected_optimum_count_delta_vs_random_mean": (
+            projected_optimum_count - random_optimum_count_mean
+        ),
+        "beats_random_bitstring_projection_baseline": (
+            projected_optimum_count > random_optimum_count_mean
+        ),
         "most_common_projected": [
             {
                 "assignment": [4, 2, 3, 5],
@@ -945,8 +1295,9 @@ def build_hardware_evidence_status() -> dict:
         "interpretation": (
             "Hardware executed the full-binary QUBO bridge on IBM Quantum. "
             "Raw feasible sampling was very low; feasible projection recovered "
-            "the exact optimum, so this is hardware feasibility evidence rather "
-            "than hardware quantum-advantage evidence."
+            "the exact optimum, but at a lower rate than the shot-matched random "
+            "full-binary projection baseline. This is hardware executability "
+            "evidence rather than hardware quantum-advantage evidence."
         ),
     }
 
@@ -994,6 +1345,14 @@ def run_hardware_demo_candidate(args: argparse.Namespace) -> dict:
         measure=True,
         coupling_threshold=args.hardware_demo_coupling_threshold,
     )
+    full_binary_angle_probe = summarize_full_binary_angle_probe(
+        env,
+        feasible,
+        exact,
+        reference_gamma=qaoa_result.gamma,
+        reference_beta=qaoa_result.beta,
+        grid_steps=args.hardware_demo_full_binary_angle_grid_steps,
+    )
 
     return {
         "purpose": (
@@ -1024,6 +1383,7 @@ def run_hardware_demo_candidate(args: argparse.Namespace) -> dict:
         },
         "qaoa_top_k_local_search": local_comparison.to_json(exact.sum_rate),
         "full_binary_circuit": circuit_summary(circuit),
+        "full_binary_angle_probe": full_binary_angle_probe,
         "recommended_next_step": (
             "Submit this smaller candidate only after checking transpiled depth "
             "on the selected backend; then compare raw feasibility and projected "
@@ -1245,7 +1605,7 @@ def run_benchmark(args: argparse.Namespace) -> dict:
         reverse=True,
     )
 
-    return {
+    result = {
         "scenario": {
             "U": params.U,
             "G": params.G,
@@ -1293,8 +1653,18 @@ def run_benchmark(args: argparse.Namespace) -> dict:
                 1.0 / random_baseline["uniform_optimum_probability"]
             ),
         },
-        "hardware_evidence": build_hardware_evidence_status(),
     }
+    if getattr(args, "include_hardware_evidence", True):
+        result["hardware_evidence"] = build_hardware_evidence_status(
+            feasible,
+            env,
+            exact.sum_rate,
+            random_projection_trials=getattr(
+                args, "hardware_projection_random_trials", 256
+            ),
+            random_projection_seed=getattr(args, "hardware_projection_seed", 260630),
+        )
+    return result
 
 
 def summarize_metric(rows: Sequence[dict], key: str) -> float:
@@ -1604,6 +1974,7 @@ def run_scale_challenge(args: argparse.Namespace) -> dict:
         sa_start_temperature=args.scale_sa_start_temperature,
         sa_end_temperature=args.scale_sa_end_temperature,
         noise_levels=args.noise_levels,
+        include_hardware_evidence=False,
         verbose=args.verbose,
     )
     return run_benchmark(scale_args)
@@ -2048,6 +2419,18 @@ def print_summary(results: dict) -> None:
                 qaoa["optimum_probability"],
             )
         )
+        angle_probe = hardware_demo.get("full_binary_angle_probe")
+        if angle_probe:
+            reference = angle_probe["reference_angles"]
+            optimized = angle_probe["qubo_energy_optimized_angles"]
+            print(
+                "Full-binary angle probe: reference projected optimum p={0:.3f}, "
+                "QUBO-energy optimized p={1:.3f}, raw feasible p={2:.4f}".format(
+                    reference["projected_optimum_probability"],
+                    optimized["projected_optimum_probability"],
+                    optimized["raw_feasible_probability"],
+                )
+            )
 
 
 def parse_args() -> argparse.Namespace:
@@ -2072,6 +2455,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--sa-trials", type=int, default=32)
     parser.add_argument("--sa-start-temperature", type=float, default=0.25)
     parser.add_argument("--sa-end-temperature", type=float, default=0.01)
+    parser.add_argument("--hardware-projection-random-trials", type=int, default=256)
+    parser.add_argument("--hardware-projection-seed", type=int, default=260630)
     parser.add_argument("--include-suite", action="store_true")
     parser.add_argument("--suite-seed-range", default="1:60")
     parser.add_argument("--suite-uavs", type=int, default=3)
@@ -2122,6 +2507,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--hardware-demo-random-trials", type=int, default=32)
     parser.add_argument("--hardware-demo-reps", type=int, default=1)
     parser.add_argument("--hardware-demo-coupling-threshold", type=float, default=0.0)
+    parser.add_argument("--hardware-demo-full-binary-angle-grid-steps", type=int, default=15)
     parser.add_argument("--output", default="qaoa_isac_benchmark_results.json")
     parser.add_argument("--make-figures", action="store_true")
     parser.add_argument("--figure-dir", default="figures")

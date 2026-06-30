@@ -1,0 +1,1605 @@
+{
+  "scenario": {
+    "U": 4,
+    "G": 6,
+    "S": 6,
+    "Nt": 4,
+    "n_qubits_full_binary": 24,
+    "Gamma_min": 0.5,
+    "seed": 67,
+    "valid_no_colocation_count": 360,
+    "feasible_assignment_count": 329,
+    "grid_points_xyz": [
+      [
+        207.16575,
+        63.469151,
+        131.724997
+      ],
+      [
+        256.992518,
+        148.621311,
+        135.341533
+      ],
+      [
+        299.018476,
+        215.635276,
+        146.844228
+      ],
+      [
+        154.147134,
+        177.650364,
+        121.872996
+      ],
+      [
+        44.258275,
+        456.113758,
+        83.842702
+      ],
+      [
+        111.703595,
+        6.006836,
+        87.72453
+      ]
+    ],
+    "survivors_xyz": [
+      [
+        113.927339,
+        168.062846,
+        0.0
+      ],
+      [
+        354.364346,
+        143.462583,
+        0.0
+      ],
+      [
+        152.427024,
+        317.945134,
+        0.0
+      ],
+      [
+        85.968379,
+        277.056873,
+        0.0
+      ],
+      [
+        401.102613,
+        51.766695,
+        0.0
+      ],
+      [
+        49.386821,
+        274.735689,
+        0.0
+      ]
+    ]
+  },
+  "exact": {
+    "assignment": [
+      2,
+      4,
+      1,
+      3
+    ],
+    "sum_rate": 7626835.738324434,
+    "sinr": [
+      1.458553773237394,
+      2.4269670593149306,
+      1.4540896406198138,
+      0.9602544618651789,
+      1.0006651680160252,
+      1.4374706975556204
+    ],
+    "qubo_energy": 30626027288.23961,
+    "c1": true,
+    "c2": true,
+    "c3": true,
+    "c4": true,
+    "feasible": true,
+    "AR_rate": 1.0
+  },
+  "greedy": {
+    "assignment": [
+      3,
+      2,
+      4,
+      1
+    ],
+    "sum_rate": 6186467.5857504085,
+    "sinr": [
+      1.09689305698816,
+      1.2212781470908591,
+      1.3749628467955128,
+      0.9660124844843335,
+      0.8850359689491775,
+      0.7765210256209599
+    ],
+    "qubo_energy": 45904078551.68497,
+    "c1": true,
+    "c2": true,
+    "c3": true,
+    "c4": true,
+    "feasible": true,
+    "AR_rate": 0.8111447260708325
+  },
+  "greedy_local_search": {
+    "assignment": [
+      3,
+      2,
+      4,
+      1
+    ],
+    "sum_rate": 6186467.5857504085,
+    "sinr": [
+      1.09689305698816,
+      1.2212781470908591,
+      1.3749628467955128,
+      0.9660124844843335,
+      0.8850359689491775,
+      0.7765210256209599
+    ],
+    "qubo_energy": 45904078551.68497,
+    "c1": true,
+    "c2": true,
+    "c3": true,
+    "c4": true,
+    "feasible": true,
+    "AR_rate": 0.8111447260708325
+  },
+  "valid_subspace_qaoa": {
+    "reps": 1,
+    "grid_steps": 11,
+    "evaluations": 121,
+    "gamma": 5.026548245743669,
+    "beta": 3.141592653589793,
+    "expected_rate": 6112022.1131363325,
+    "top_index": 167,
+    "top_probability": 0.016368540617725774,
+    "optimum_probability": 0.014829009543126517,
+    "sampled_best_index": 155,
+    "sampled_best_count": 18,
+    "shots": 1024,
+    "best_so_far_trace": [
+      {
+        "evaluation": 1,
+        "gamma": 0.0,
+        "beta": 0.0,
+        "best_expected_AR_rate": 0.7630645828543176,
+        "top_AR_rate": 0.7929354324782532,
+        "top_probability": 0.003039513677811619,
+        "optimum_probability": 0.00303951367781156
+      },
+      {
+        "evaluation": 2,
+        "gamma": 0.0,
+        "beta": 0.3141592653589793,
+        "best_expected_AR_rate": 0.7661487542491845,
+        "top_AR_rate": 0.8627096024478452,
+        "top_probability": 0.004294438869181353,
+        "optimum_probability": 0.003833590996690089
+      },
+      {
+        "evaluation": 3,
+        "gamma": 0.0,
+        "beta": 0.6283185307179586,
+        "best_expected_AR_rate": 0.7665313914172125,
+        "top_AR_rate": 0.7026311051664562,
+        "top_probability": 0.005640264611414997,
+        "optimum_probability": 0.004376567618426002
+      },
+      {
+        "evaluation": 6,
+        "gamma": 0.0,
+        "beta": 1.5707963267948966,
+        "best_expected_AR_rate": 0.7681355252932526,
+        "top_AR_rate": 0.7901111225653422,
+        "top_probability": 0.009260767416573402,
+        "optimum_probability": 0.0030859878755323733
+      },
+      {
+        "evaluation": 18,
+        "gamma": 0.6283185307179586,
+        "beta": 1.8849555921538759,
+        "best_expected_AR_rate": 0.7686705327807895,
+        "top_AR_rate": 0.7901111225653422,
+        "top_probability": 0.007934420921317175,
+        "optimum_probability": 0.004223263839729315
+      },
+      {
+        "evaluation": 20,
+        "gamma": 0.6283185307179586,
+        "beta": 2.5132741228718345,
+        "best_expected_AR_rate": 0.7691772703997405,
+        "top_AR_rate": 0.8966600815364254,
+        "top_probability": 0.007138778731225112,
+        "optimum_probability": 0.003808834119369465
+      },
+      {
+        "evaluation": 21,
+        "gamma": 0.6283185307179586,
+        "beta": 2.827433388230814,
+        "best_expected_AR_rate": 0.7752027640415406,
+        "top_AR_rate": 1.0,
+        "top_probability": 0.005898012791665839,
+        "optimum_probability": 0.005898012791665839
+      },
+      {
+        "evaluation": 32,
+        "gamma": 1.2566370614359172,
+        "beta": 2.827433388230814,
+        "best_expected_AR_rate": 0.7822398387613667,
+        "top_AR_rate": 1.0,
+        "top_probability": 0.007623840495558531,
+        "optimum_probability": 0.007623840495558531
+      },
+      {
+        "evaluation": 43,
+        "gamma": 1.8849555921538759,
+        "beta": 2.827433388230814,
+        "best_expected_AR_rate": 0.7884852730124767,
+        "top_AR_rate": 1.0,
+        "top_probability": 0.009449570695837095,
+        "optimum_probability": 0.009449570695837095
+      },
+      {
+        "evaluation": 54,
+        "gamma": 2.5132741228718345,
+        "beta": 2.827433388230814,
+        "best_expected_AR_rate": 0.7936754235139587,
+        "top_AR_rate": 1.0,
+        "top_probability": 0.011215209885228132,
+        "optimum_probability": 0.011215209885228132
+      },
+      {
+        "evaluation": 65,
+        "gamma": 3.141592653589793,
+        "beta": 2.827433388230814,
+        "best_expected_AR_rate": 0.7976141418811927,
+        "top_AR_rate": 0.9079603587657556,
+        "top_probability": 0.013154898043252188,
+        "optimum_probability": 0.012761484552643233
+      },
+      {
+        "evaluation": 76,
+        "gamma": 3.7699111843077517,
+        "beta": 2.827433388230814,
+        "best_expected_AR_rate": 0.8001879849141655,
+        "top_AR_rate": 0.9079603587657556,
+        "top_probability": 0.01544550744496785,
+        "optimum_probability": 0.013950860095400865
+      },
+      {
+        "evaluation": 87,
+        "gamma": 4.39822971502571,
+        "beta": 2.827433388230814,
+        "best_expected_AR_rate": 0.801373444539027,
+        "top_AR_rate": 0.9079603587657556,
+        "top_probability": 0.017773362661506416,
+        "optimum_probability": 0.01468507968141334
+      },
+      {
+        "evaluation": 99,
+        "gamma": 5.026548245743669,
+        "beta": 3.141592653589793,
+        "best_expected_AR_rate": 0.8013837353836998,
+        "top_AR_rate": 0.9226755873607283,
+        "top_probability": 0.016368540617725774,
+        "optimum_probability": 0.014829009543126517
+      }
+    ],
+    "angle_landscape": [
+      [
+        0.7630645828543176,
+        0.7661487542491845,
+        0.7665313914172125,
+        0.7645236071096185,
+        0.7657699838128422,
+        0.7681355252932526,
+        0.7665271991120299,
+        0.7668360993320468,
+        0.7679612086703075,
+        0.7676840161350973,
+        0.7647720910609018
+      ],
+      [
+        0.7630645828543166,
+        0.7545661317484713,
+        0.7619307555803593,
+        0.7630494807402911,
+        0.7609866449253732,
+        0.7654679757444236,
+        0.7686705327807895,
+        0.7680885403673244,
+        0.7691772703997405,
+        0.7752027640415406,
+        0.7727013904746333
+      ],
+      [
+        0.7630645828543166,
+        0.7432532569807591,
+        0.757091256299161,
+        0.7614493703061546,
+        0.7563497714586803,
+        0.7624850054537258,
+        0.7704163423582167,
+        0.7691103563224065,
+        0.770095732697075,
+        0.7822398387613667,
+        0.7801556276354891
+      ],
+      [
+        0.7630645828543167,
+        0.7325610605466277,
+        0.7521158113792153,
+        0.7597558159320774,
+        0.7520473183228051,
+        0.7593545032826899,
+        0.7717656747758305,
+        0.769939239019885,
+        0.7707310777473285,
+        0.7884852730124767,
+        0.7868057340085034
+      ],
+      [
+        0.763064582854317,
+        0.7228155741795371,
+        0.7471414079779349,
+        0.7580234295021457,
+        0.7482545507487219,
+        0.7562684732072519,
+        0.7727556121802857,
+        0.7706263782636332,
+        0.7711049162413083,
+        0.7936754235139587,
+        0.7923835678671969
+      ],
+      [
+        0.763064582854317,
+        0.7143026463457208,
+        0.742335560533359,
+        0.75633214042073,
+        0.7451263129724727,
+        0.7534215292560196,
+        0.7734441625714857,
+        0.7712228508745889,
+        0.7712430293853724,
+        0.7976141418811927,
+        0.7966974846037668
+      ],
+      [
+        0.7630645828543166,
+        0.7072542893585811,
+        0.7378871699624322,
+        0.7547846586518293,
+        0.7427878016966032,
+        0.7509888622807617,
+        0.7738945095169764,
+        0.7717682831614567,
+        0.7711751860961346,
+        0.8001879849141655,
+        0.7996395789348367
+      ],
+      [
+        0.7630645828543169,
+        0.7018375334409784,
+        0.7339922645487251,
+        0.7534974103754684,
+        0.7413241960707089,
+        0.7491068262356675,
+        0.7741618159962317,
+        0.7722840039589969,
+        0.7709368933662191,
+        0.801373444539027,
+        0.8011848625426528
+      ],
+      [
+        0.7630645828543168,
+        0.698146604648659,
+        0.730836145650982,
+        0.7525860537766578,
+        0.7407707650935625,
+        0.7478590132346633,
+        0.7742849191130673,
+        0.7727715226528619,
+        0.7705714236189753,
+        0.8012352657497198,
+        0.8013837353836998
+      ],
+      [
+        0.7630645828543168,
+        0.6961990999059197,
+        0.7285742878268441,
+        0.752148317323272,
+        0.7411059446615551,
+        0.7472698807578476,
+        0.7742839772009404,
+        0.7732158222591572,
+        0.7701303258733594,
+        0.7999161659878095,
+        0.8003497723607949
+      ],
+      [
+        0.7630645828543167,
+        0.6959366003056,
+        0.7273147599221527,
+        0.7522478231577796,
+        0.7422499509089818,
+        0.7473067412892954,
+        0.7741637328803265,
+        0.7735919950259335,
+        0.769671196553707,
+        0.797619440820639,
+        0.798245007844053
+      ]
+    ],
+    "gamma_grid": [
+      0.0,
+      0.6283185307179586,
+      1.2566370614359172,
+      1.8849555921538759,
+      2.5132741228718345,
+      3.141592653589793,
+      3.7699111843077517,
+      4.39822971502571,
+      5.026548245743669,
+      5.654866776461628,
+      6.283185307179586
+    ],
+    "beta_grid": [
+      0.0,
+      0.3141592653589793,
+      0.6283185307179586,
+      0.9424777960769379,
+      1.2566370614359172,
+      1.5707963267948966,
+      1.8849555921538759,
+      2.199114857512855,
+      2.5132741228718345,
+      2.827433388230814,
+      3.141592653589793
+    ],
+    "top_assignment": {
+      "assignment": [
+        2,
+        5,
+        1,
+        3
+      ],
+      "sum_rate": 7037095.144562291,
+      "sinr": [
+        1.5870367511296728,
+        2.4673953961334987,
+        0.9655693261457626,
+        0.9106941879887285,
+        0.9527311167642821,
+        0.9964055056589538
+      ],
+      "qubo_energy": 30964241756.1313,
+      "c1": true,
+      "c2": true,
+      "c3": true,
+      "c4": true,
+      "feasible": true,
+      "AR_rate": 0.9226755873607283
+    },
+    "sampled_best_assignment": {
+      "assignment": [
+        2,
+        4,
+        1,
+        3
+      ],
+      "sum_rate": 7626835.738324434,
+      "sinr": [
+        1.458553773237394,
+        2.4269670593149306,
+        1.4540896406198138,
+        0.9602544618651789,
+        1.0006651680160252,
+        1.4374706975556204
+      ],
+      "qubo_energy": 30626027288.23961,
+      "c1": true,
+      "c2": true,
+      "c3": true,
+      "c4": true,
+      "feasible": true,
+      "AR_rate": 1.0
+    },
+    "expected_AR_rate": 0.8013837353836998,
+    "shot_success_probability": 0.9999997730690174,
+    "shots_for_95pct_success": 201,
+    "expected_samples_to_optimum": 67.43538717752838,
+    "enrichment_vs_uniform": 4.878744139688624,
+    "top_probabilities": [
+      {
+        "assignment": [
+          2,
+          5,
+          1,
+          3
+        ],
+        "sum_rate": 7037095.144562291,
+        "probability": 0.016368540617725774,
+        "AR_rate": 0.9226755873607283
+      },
+      {
+        "assignment": [
+          2,
+          4,
+          5,
+          3
+        ],
+        "sum_rate": 7061239.882324724,
+        "probability": 0.015578942920895277,
+        "AR_rate": 0.9258413481809211
+      },
+      {
+        "assignment": [
+          2,
+          4,
+          1,
+          3
+        ],
+        "sum_rate": 7626835.738324434,
+        "probability": 0.014829009543126517,
+        "AR_rate": 1.0
+      },
+      {
+        "assignment": [
+          0,
+          2,
+          3,
+          4
+        ],
+        "sum_rate": 6764457.663221736,
+        "probability": 0.013752480339411483,
+        "AR_rate": 0.8869284583160361
+      },
+      {
+        "assignment": [
+          2,
+          4,
+          3,
+          1
+        ],
+        "sum_rate": 7000761.386410372,
+        "probability": 0.013564356220782007,
+        "AR_rate": 0.9179116512542584
+      },
+      {
+        "assignment": [
+          0,
+          2,
+          5,
+          3
+        ],
+        "sum_rate": 6924864.513216539,
+        "probability": 0.011978465571388342,
+        "AR_rate": 0.9079603587657556
+      },
+      {
+        "assignment": [
+          2,
+          5,
+          3,
+          1
+        ],
+        "sum_rate": 6594692.274598876,
+        "probability": 0.011825084841758184,
+        "AR_rate": 0.864669503954426
+      },
+      {
+        "assignment": [
+          0,
+          3,
+          1,
+          4
+        ],
+        "sum_rate": 6576411.055613463,
+        "probability": 0.011791392198117546,
+        "AR_rate": 0.8622725441125415
+      }
+    ]
+  },
+  "qaoa_top_k_local_search": {
+    "top_k": 8,
+    "qaoa_raw_best": {
+      "assignment": [
+        2,
+        4,
+        1,
+        3
+      ],
+      "sum_rate": 7626835.738324434,
+      "sinr": [
+        1.458553773237394,
+        2.4269670593149306,
+        1.4540896406198138,
+        0.9602544618651789,
+        1.0006651680160252,
+        1.4374706975556204
+      ],
+      "qubo_energy": 30626027288.23961,
+      "c1": true,
+      "c2": true,
+      "c3": true,
+      "c4": true,
+      "feasible": true,
+      "AR_rate": 1.0
+    },
+    "qaoa_best": {
+      "assignment": [
+        2,
+        4,
+        1,
+        3
+      ],
+      "sum_rate": 7626835.738324434,
+      "sinr": [
+        1.458553773237394,
+        2.4269670593149306,
+        1.4540896406198138,
+        0.9602544618651789,
+        1.0006651680160252,
+        1.4374706975556204
+      ],
+      "qubo_energy": 30626027288.23961,
+      "c1": true,
+      "c2": true,
+      "c3": true,
+      "c4": true,
+      "feasible": true,
+      "AR_rate": 1.0
+    },
+    "qaoa_local_gain_AR_rate": 0.0,
+    "random_raw_mean_AR_rate": 0.8587325000558617,
+    "random_raw_std_AR_rate": 0.025691340369050714,
+    "random_raw_worst_AR_rate": 0.8295127931371419,
+    "random_raw_best_AR_rate": 0.8966600815364254,
+    "random_local_gain_mean_AR_rate": 0.13733810873964883,
+    "random_mean_AR_rate": 0.9960706087955105,
+    "random_std_AR_rate": 0.003929391204489541,
+    "random_worst_AR_rate": 0.9921412175910209,
+    "random_best_AR_rate": 1.0,
+    "random_optimum_hit_rate": 0.5,
+    "qaoa_beats_random_trial_rate": 0.5,
+    "random_trials": 4
+  },
+  "simulated_annealing": {
+    "restarts": 8,
+    "steps_per_restart": 24,
+    "trials": 4,
+    "start_temperature": 0.25,
+    "end_temperature": 0.01,
+    "best": {
+      "assignment": [
+        2,
+        4,
+        1,
+        3
+      ],
+      "sum_rate": 7626835.738324434,
+      "sinr": [
+        1.458553773237394,
+        2.4269670593149306,
+        1.4540896406198138,
+        0.9602544618651789,
+        1.0006651680160252,
+        1.4374706975556204
+      ],
+      "qubo_energy": 30626027288.23961,
+      "c1": true,
+      "c2": true,
+      "c3": true,
+      "c4": true,
+      "feasible": true,
+      "AR_rate": 1.0
+    },
+    "mean_AR_rate": 0.9960706087955105,
+    "std_AR_rate": 0.003929391204489541,
+    "worst_AR_rate": 0.9921412175910209,
+    "best_AR_rate": 1.0,
+    "optimum_hit_rate": 0.5
+  },
+  "top_k_sweep": [
+    {
+      "top_k": 1,
+      "effective_top_k": 1,
+      "qaoa_raw_AR_rate": 0.9226755873607283,
+      "qaoa_AR_rate": 1.0,
+      "qaoa_local_gain_AR_rate": 0.0773244126392717,
+      "qaoa_optimum_hit": true,
+      "qaoa_assignment": [
+        2,
+        4,
+        1,
+        3
+      ],
+      "qaoa_probability_mass": 0.016368540617725774,
+      "random_raw_mean_AR_rate": 0.7209674075750893,
+      "random_raw_std_AR_rate": 0.06283532262041522,
+      "random_raw_worst_AR_rate": 0.6220211918942139,
+      "random_raw_best_AR_rate": 0.7901111225653422,
+      "random_local_gain_mean_AR_rate": 0.19024963343479515,
+      "random_mean_AR_rate": 0.9112170410098845,
+      "random_std_AR_rate": 0.05735944672823931,
+      "random_worst_AR_rate": 0.8299051292671014,
+      "random_best_AR_rate": 0.9921412175910209,
+      "random_optimum_hit_rate": 0.0,
+      "random_exact_candidate_hit_probability": 0.003039513677811523,
+      "qaoa_gain_over_random_mean": 0.08878295899011546,
+      "qaoa_beats_random_trial_rate": 1.0,
+      "random_trials": 4
+    },
+    {
+      "top_k": 2,
+      "effective_top_k": 2,
+      "qaoa_raw_AR_rate": 0.9258413481809211,
+      "qaoa_AR_rate": 1.0,
+      "qaoa_local_gain_AR_rate": 0.07415865181907888,
+      "qaoa_optimum_hit": true,
+      "qaoa_assignment": [
+        2,
+        4,
+        1,
+        3
+      ],
+      "qaoa_probability_mass": 0.03194748353862105,
+      "random_raw_mean_AR_rate": 0.8485201192511428,
+      "random_raw_std_AR_rate": 0.02837253542870419,
+      "random_raw_worst_AR_rate": 0.8181198321478093,
+      "random_raw_best_AR_rate": 0.8949299353790895,
+      "random_local_gain_mean_AR_rate": 0.08403634520036801,
+      "random_mean_AR_rate": 0.9325564644515109,
+      "random_std_AR_rate": 0.03897288793819415,
+      "random_worst_AR_rate": 0.9074040406246278,
+      "random_best_AR_rate": 1.0,
+      "random_optimum_hit_rate": 0.25,
+      "random_exact_candidate_hit_probability": 0.006079027355623046,
+      "qaoa_gain_over_random_mean": 0.06744353554848914,
+      "qaoa_beats_random_trial_rate": 0.75,
+      "random_trials": 4
+    },
+    {
+      "top_k": 4,
+      "effective_top_k": 4,
+      "qaoa_raw_AR_rate": 1.0,
+      "qaoa_AR_rate": 1.0,
+      "qaoa_local_gain_AR_rate": 0.0,
+      "qaoa_optimum_hit": true,
+      "qaoa_assignment": [
+        2,
+        4,
+        1,
+        3
+      ],
+      "qaoa_probability_mass": 0.06052897342115905,
+      "random_raw_mean_AR_rate": 0.8603240117295522,
+      "random_raw_std_AR_rate": 0.04698444241805963,
+      "random_raw_worst_AR_rate": 0.8135568948402295,
+      "random_raw_best_AR_rate": 0.9258413481809211,
+      "random_local_gain_mean_AR_rate": 0.13771129266820303,
+      "random_mean_AR_rate": 0.9980353043977552,
+      "random_std_AR_rate": 0.0034029526044950763,
+      "random_worst_AR_rate": 0.9921412175910209,
+      "random_best_AR_rate": 1.0,
+      "random_optimum_hit_rate": 0.75,
+      "random_exact_candidate_hit_probability": 0.012158054711246202,
+      "qaoa_gain_over_random_mean": 0.0019646956022447704,
+      "qaoa_beats_random_trial_rate": 0.25,
+      "random_trials": 4
+    },
+    {
+      "top_k": 8,
+      "effective_top_k": 8,
+      "qaoa_raw_AR_rate": 1.0,
+      "qaoa_AR_rate": 1.0,
+      "qaoa_local_gain_AR_rate": 0.0,
+      "qaoa_optimum_hit": true,
+      "qaoa_assignment": [
+        2,
+        4,
+        1,
+        3
+      ],
+      "qaoa_probability_mass": 0.10968827225320513,
+      "random_raw_mean_AR_rate": 0.8503289314304966,
+      "random_raw_std_AR_rate": 0.07674617327240137,
+      "random_raw_worst_AR_rate": 0.7589234644963077,
+      "random_raw_best_AR_rate": 0.9504628635322853,
+      "random_local_gain_mean_AR_rate": 0.1255591001149356,
+      "random_mean_AR_rate": 0.9758880315454321,
+      "random_std_AR_rate": 0.03736388459013365,
+      "random_worst_AR_rate": 0.9114109085907078,
+      "random_best_AR_rate": 1.0,
+      "random_optimum_hit_rate": 0.5,
+      "random_exact_candidate_hit_probability": 0.024316109422492405,
+      "qaoa_gain_over_random_mean": 0.024111968454567867,
+      "qaoa_beats_random_trial_rate": 0.5,
+      "random_trials": 4
+    },
+    {
+      "top_k": 16,
+      "effective_top_k": 16,
+      "qaoa_raw_AR_rate": 1.0,
+      "qaoa_AR_rate": 1.0,
+      "qaoa_local_gain_AR_rate": 0.0,
+      "qaoa_optimum_hit": true,
+      "qaoa_assignment": [
+        2,
+        4,
+        1,
+        3
+      ],
+      "qaoa_probability_mass": 0.18584343422104435,
+      "random_raw_mean_AR_rate": 0.9403547575846605,
+      "random_raw_std_AR_rate": 0.034305638707811933,
+      "random_raw_worst_AR_rate": 0.9074040406246278,
+      "random_raw_best_AR_rate": 0.9921412175910209,
+      "random_local_gain_mean_AR_rate": 0.059645242415339556,
+      "random_mean_AR_rate": 1.0,
+      "random_std_AR_rate": 0.0,
+      "random_worst_AR_rate": 1.0,
+      "random_best_AR_rate": 1.0,
+      "random_optimum_hit_rate": 1.0,
+      "random_exact_candidate_hit_probability": 0.04863221884498481,
+      "qaoa_gain_over_random_mean": 0.0,
+      "qaoa_beats_random_trial_rate": 0.0,
+      "random_trials": 4
+    }
+  ],
+  "probability_noise_robustness": {
+    "model": "Convex blend of QAOA feasible-subspace probabilities toward uniform feasible sampling.",
+    "interpretation": "This is a simulator-side stress test of probability concentration, not a hardware noise calibration.",
+    "rows": [
+      {
+        "uniform_blend": 0.0,
+        "top_k": 8,
+        "effective_top_k": 8,
+        "top_assignment": {
+          "assignment": [
+            2,
+            5,
+            1,
+            3
+          ],
+          "sum_rate": 7037095.144562291,
+          "sinr": [
+            1.5870367511296728,
+            2.4673953961334987,
+            0.9655693261457626,
+            0.9106941879887285,
+            0.9527311167642821,
+            0.9964055056589538
+          ],
+          "qubo_energy": 30964241756.1313,
+          "c1": true,
+          "c2": true,
+          "c3": true,
+          "c4": true,
+          "feasible": true,
+          "AR_rate": 0.9226755873607283
+        },
+        "top_probability": 0.016368540617725774,
+        "top_k_probability_mass": 0.10968827225320513,
+        "top_k_local_assignment": {
+          "assignment": [
+            2,
+            4,
+            1,
+            3
+          ],
+          "sum_rate": 7626835.738324434,
+          "sinr": [
+            1.458553773237394,
+            2.4269670593149306,
+            1.4540896406198138,
+            0.9602544618651789,
+            1.0006651680160252,
+            1.4374706975556204
+          ],
+          "qubo_energy": 30626027288.23961,
+          "c1": true,
+          "c2": true,
+          "c3": true,
+          "c4": true,
+          "feasible": true,
+          "AR_rate": 1.0
+        },
+        "top_k_local_AR_rate": 1.0,
+        "top_k_optimum_hit": true,
+        "optimum_probability": 0.014829009543126517,
+        "enrichment_vs_uniform": 4.878744139688668,
+        "shot_success_probability": 0.9999997730690174,
+        "shots_for_95pct_success": 201
+      },
+      {
+        "uniform_blend": 0.1,
+        "top_k": 8,
+        "effective_top_k": 8,
+        "top_assignment": {
+          "assignment": [
+            2,
+            5,
+            1,
+            3
+          ],
+          "sum_rate": 7037095.144562291,
+          "sinr": [
+            1.5870367511296728,
+            2.4673953961334987,
+            0.9655693261457626,
+            0.9106941879887285,
+            0.9527311167642821,
+            0.9964055056589538
+          ],
+          "qubo_energy": 30964241756.1313,
+          "c1": true,
+          "c2": true,
+          "c3": true,
+          "c4": true,
+          "feasible": true,
+          "AR_rate": 0.9226755873607283
+        },
+        "top_probability": 0.015035637923734352,
+        "top_k_probability_mass": 0.10115105597013385,
+        "top_k_local_assignment": {
+          "assignment": [
+            2,
+            4,
+            1,
+            3
+          ],
+          "sum_rate": 7626835.738324434,
+          "sinr": [
+            1.458553773237394,
+            2.4269670593149306,
+            1.4540896406198138,
+            0.9602544618651789,
+            1.0006651680160252,
+            1.4374706975556204
+          ],
+          "qubo_energy": 30626027288.23961,
+          "c1": true,
+          "c2": true,
+          "c3": true,
+          "c4": true,
+          "feasible": true,
+          "AR_rate": 1.0
+        },
+        "top_k_local_AR_rate": 1.0,
+        "top_k_optimum_hit": true,
+        "optimum_probability": 0.01365005995659502,
+        "enrichment_vs_uniform": 4.490869725719802,
+        "shot_success_probability": 0.9999992277337512,
+        "shots_for_95pct_success": 218
+      },
+      {
+        "uniform_blend": 0.25,
+        "top_k": 8,
+        "effective_top_k": 8,
+        "top_assignment": {
+          "assignment": [
+            2,
+            5,
+            1,
+            3
+          ],
+          "sum_rate": 7037095.144562291,
+          "sinr": [
+            1.5870367511296728,
+            2.4673953961334987,
+            0.9655693261457626,
+            0.9106941879887285,
+            0.9527311167642821,
+            0.9964055056589538
+          ],
+          "qubo_energy": 30964241756.1313,
+          "c1": true,
+          "c2": true,
+          "c3": true,
+          "c4": true,
+          "feasible": true,
+          "AR_rate": 0.9226755873607283
+        },
+        "top_probability": 0.013036283882747218,
+        "top_k_probability_mass": 0.08834523154552695,
+        "top_k_local_assignment": {
+          "assignment": [
+            2,
+            4,
+            1,
+            3
+          ],
+          "sum_rate": 7626835.738324434,
+          "sinr": [
+            1.458553773237394,
+            2.4269670593149306,
+            1.4540896406198138,
+            0.9602544618651789,
+            1.0006651680160252,
+            1.4374706975556204
+          ],
+          "qubo_energy": 30626027288.23961,
+          "c1": true,
+          "c2": true,
+          "c3": true,
+          "c4": true,
+          "feasible": true,
+          "AR_rate": 1.0
+        },
+        "top_k_local_AR_rate": 1.0,
+        "top_k_optimum_hit": true,
+        "optimum_probability": 0.011881635576797774,
+        "enrichment_vs_uniform": 3.909058104766503,
+        "shot_success_probability": 0.9999951651150998,
+        "shots_for_95pct_success": 251
+      },
+      {
+        "uniform_blend": 0.5,
+        "top_k": 8,
+        "effective_top_k": 8,
+        "top_assignment": {
+          "assignment": [
+            2,
+            5,
+            1,
+            3
+          ],
+          "sum_rate": 7037095.144562291,
+          "sinr": [
+            1.5870367511296728,
+            2.4673953961334987,
+            0.9655693261457626,
+            0.9106941879887285,
+            0.9527311167642821,
+            0.9964055056589538
+          ],
+          "qubo_energy": 30964241756.1313,
+          "c1": true,
+          "c2": true,
+          "c3": true,
+          "c4": true,
+          "feasible": true,
+          "AR_rate": 0.9226755873607283
+        },
+        "top_probability": 0.009704027147768662,
+        "top_k_probability_mass": 0.06700219083784877,
+        "top_k_local_assignment": {
+          "assignment": [
+            2,
+            4,
+            1,
+            3
+          ],
+          "sum_rate": 7626835.738324434,
+          "sinr": [
+            1.458553773237394,
+            2.4269670593149306,
+            1.4540896406198138,
+            0.9602544618651789,
+            1.0006651680160252,
+            1.4374706975556204
+          ],
+          "qubo_energy": 30626027288.23961,
+          "c1": true,
+          "c2": true,
+          "c3": true,
+          "c4": true,
+          "feasible": true,
+          "AR_rate": 1.0
+        },
+        "top_k_local_AR_rate": 1.0,
+        "top_k_optimum_hit": true,
+        "optimum_probability": 0.008934261610469034,
+        "enrichment_vs_uniform": 2.9393720698443384,
+        "shot_success_probability": 0.999897924448583,
+        "shots_for_95pct_success": 334
+      },
+      {
+        "uniform_blend": 0.75,
+        "top_k": 8,
+        "effective_top_k": 8,
+        "top_assignment": {
+          "assignment": [
+            2,
+            5,
+            1,
+            3
+          ],
+          "sum_rate": 7037095.144562291,
+          "sinr": [
+            1.5870367511296728,
+            2.4673953961334987,
+            0.9655693261457626,
+            0.9106941879887285,
+            0.9527311167642821,
+            0.9964055056589538
+          ],
+          "qubo_energy": 30964241756.1313,
+          "c1": true,
+          "c2": true,
+          "c3": true,
+          "c4": true,
+          "feasible": true,
+          "AR_rate": 0.9226755873607283
+        },
+        "top_probability": 0.0063717704127901065,
+        "top_k_probability_mass": 0.04565915013017058,
+        "top_k_local_assignment": {
+          "assignment": [
+            2,
+            4,
+            1,
+            3
+          ],
+          "sum_rate": 7626835.738324434,
+          "sinr": [
+            1.458553773237394,
+            2.4269670593149306,
+            1.4540896406198138,
+            0.9602544618651789,
+            1.0006651680160252,
+            1.4374706975556204
+          ],
+          "qubo_energy": 30626027288.23961,
+          "c1": true,
+          "c2": true,
+          "c3": true,
+          "c4": true,
+          "feasible": true,
+          "AR_rate": 1.0
+        },
+        "top_k_local_AR_rate": 1.0,
+        "top_k_optimum_hit": true,
+        "optimum_probability": 0.005986887644140291,
+        "enrichment_vs_uniform": 1.9696860349221734,
+        "shot_success_probability": 0.9978643795154981,
+        "shots_for_95pct_success": 499
+      },
+      {
+        "uniform_blend": 1.0,
+        "top_k": 8,
+        "effective_top_k": 8,
+        "top_assignment": {
+          "assignment": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "sum_rate": 6650471.6684489865,
+          "sinr": [
+            1.1551834180017289,
+            1.2852059269818077,
+            1.2625165165727938,
+            1.459733108992494,
+            0.8691413226270229,
+            0.9609205356774457
+          ],
+          "qubo_energy": 24975604992.068428,
+          "c1": true,
+          "c2": true,
+          "c3": true,
+          "c4": true,
+          "feasible": true,
+          "AR_rate": 0.8719830735347727
+        },
+        "top_probability": 0.00303951367781155,
+        "top_k_probability_mass": 0.0243161094224924,
+        "top_k_local_assignment": {
+          "assignment": [
+            2,
+            4,
+            1,
+            3
+          ],
+          "sum_rate": 7626835.738324434,
+          "sinr": [
+            1.458553773237394,
+            2.4269670593149306,
+            1.4540896406198138,
+            0.9602544618651789,
+            1.0006651680160252,
+            1.4374706975556204
+          ],
+          "qubo_energy": 30626027288.23961,
+          "c1": true,
+          "c2": true,
+          "c3": true,
+          "c4": true,
+          "feasible": true,
+          "AR_rate": 1.0
+        },
+        "top_k_local_AR_rate": 1.0,
+        "top_k_optimum_hit": true,
+        "optimum_probability": 0.00303951367781155,
+        "enrichment_vs_uniform": 1.0000000000000089,
+        "shot_success_probability": 0.9557190978848167,
+        "shots_for_95pct_success": 985
+      }
+    ]
+  },
+  "random_feasible": {
+    "mean_rate": 5819768.231162931,
+    "std_rate": 574297.7181935214,
+    "best_rate": 7626835.738324434,
+    "uniform_optimum_probability": 0.00303951367781155,
+    "mean_AR_rate": 0.763064582854317,
+    "shot_success_probability": 0.9557190978848167,
+    "shots_for_95pct_success": 985,
+    "expected_samples_to_optimum": 329.0
+  },
+  "hardware_evidence": {
+    "status": "measured",
+    "headline_source": "valid_subspace_qaoa_simulator",
+    "hardware_path": "full_binary_qubo_bridge",
+    "backend_name": "ibm_quebec",
+    "job_id": "d91i01vccmks73d56i80",
+    "count_register": "c",
+    "qubit_count": 24,
+    "pre_isa_depth": 139,
+    "pre_isa_ops": {
+      "cx": 552,
+      "rz": 300,
+      "h": 24,
+      "rx": 24,
+      "measure": 24
+    },
+    "transpiled_depth": 1233,
+    "transpiled_ops": {
+      "sx": 2865,
+      "rz": 1804,
+      "cz": 1572,
+      "measure": 24,
+      "x": 1
+    },
+    "cx_count": 0,
+    "cz_count": 1572,
+    "two_qubit_gate_count": 1572,
+    "shots": 1024,
+    "distinct_bitstrings": 1022,
+    "raw_feasible_count": 1,
+    "feasible_sample_rate": 0.0009765625,
+    "best_feasible_bitstring": "001000000001100000000010",
+    "best_feasible_assignment": [
+      1,
+      5,
+      0,
+      3
+    ],
+    "best_hardware_AR_rate": 0.8294928238727217,
+    "best_projected_source_bitstring": "111001101011010010010100",
+    "best_projected_assignment": [
+      2,
+      4,
+      1,
+      3
+    ],
+    "best_projected_AR_rate": 1.0,
+    "best_projected_count": 16,
+    "best_projected_sample_rate": 0.015625,
+    "random_bitstring_projection_baseline": {
+      "model": "uniform_full_binary_bitstrings_then_nearest_feasible_projection",
+      "n_qubits": 24,
+      "feasible_assignment_count": 329,
+      "optimal_feasible_assignment_count": 1,
+      "shots_per_trial": 1024,
+      "random_trials": 8,
+      "seed": 260630,
+      "projected_optimum_rate_mean": 0.0716552734375,
+      "projected_optimum_rate_std": 0.0085962118610636,
+      "projected_optimum_rate_worst": 0.05859375,
+      "projected_optimum_rate_best": 0.0830078125,
+      "projected_optimum_rate_p05": 0.05859375,
+      "projected_optimum_rate_p50": 0.07373046875,
+      "projected_optimum_rate_p95": 0.081640625,
+      "projected_optimum_count_mean": 73.375,
+      "projected_best_AR_rate_mean": 1.0,
+      "projected_best_AR_rate_std": 0.0,
+      "projected_best_AR_rate_worst": 1.0,
+      "projected_best_AR_rate_best": 1.0,
+      "projected_mean_AR_rate_mean": 0.8796241840078673,
+      "projected_mean_AR_rate_std": 0.0024208327521211097,
+      "projected_mean_AR_rate_worst": 0.8758797760962669,
+      "projected_mean_AR_rate_best": 0.8844138019740051
+    },
+    "projected_optimum_count_lift_vs_random_mean": 0.21805792163543442,
+    "projected_optimum_count_delta_vs_random_mean": -57.375,
+    "beats_random_bitstring_projection_baseline": false,
+    "most_common_projected": [
+      {
+        "assignment": [
+          4,
+          2,
+          3,
+          5
+        ],
+        "count": 54,
+        "AR_rate": 0.9074040406246278
+      },
+      {
+        "assignment": [
+          0,
+          3,
+          1,
+          2
+        ],
+        "count": 49,
+        "AR_rate": 0.9114109085907078
+      },
+      {
+        "assignment": [
+          0,
+          2,
+          3,
+          4
+        ],
+        "count": 48,
+        "AR_rate": 0.8869284583160361
+      },
+      {
+        "assignment": [
+          2,
+          4,
+          3,
+          5
+        ],
+        "count": 37,
+        "AR_rate": 0.9921412175910209
+      },
+      {
+        "assignment": [
+          5,
+          4,
+          3,
+          1
+        ],
+        "count": 30,
+        "AR_rate": 0.8874307484159896
+      }
+    ],
+    "same_scenario_greedy_AR_rate": 0.8111447260708325,
+    "same_scenario_random_AR_rate": 0.7630645828543176,
+    "same_scenario_qaoa_top_k_local_AR_rate": 1.0,
+    "interpretation": "Hardware executed the full-binary QUBO bridge on IBM Quantum. Raw feasible sampling was very low; feasible projection recovered the exact optimum, but at a lower rate than the shot-matched random full-binary projection baseline. This is hardware executability evidence rather than hardware quantum-advantage evidence."
+  },
+  "hardware_demo_candidate": {
+    "purpose": "Smaller full-binary QUBO hardware candidate intended to reduce qubit count and circuit depth before another IBM submission.",
+    "scenario": {
+      "U": 3,
+      "G": 6,
+      "S": 5,
+      "Nt": 4,
+      "n_qubits_full_binary": 18,
+      "Gamma_min": 0.5,
+      "seed": 35,
+      "valid_no_colocation_count": 120,
+      "feasible_assignment_count": 22
+    },
+    "exact": {
+      "assignment": [
+        1,
+        0,
+        5
+      ],
+      "sum_rate": 9668105.602122689,
+      "sinr": [
+        1.1644928564025956,
+        1.0844693285721252,
+        6.675359707728294,
+        2.999607353509374,
+        4.873838822271663
+      ],
+      "qubo_energy": 55269710438.95545,
+      "c1": true,
+      "c2": true,
+      "c3": true,
+      "c4": true,
+      "feasible": true,
+      "AR_rate": 1.0
+    },
+    "greedy": {
+      "assignment": [
+        5,
+        4,
+        0
+      ],
+      "sum_rate": 7589942.666313967,
+      "sinr": [
+        1.3594409330823534,
+        2.2400893921772287,
+        3.0705269695707043,
+        1.676353629026197,
+        1.3133437585684826
+      ],
+      "qubo_energy": 28010441027.83848,
+      "c1": true,
+      "c2": true,
+      "c3": true,
+      "c4": true,
+      "feasible": true,
+      "AR_rate": 0.7850496238526347
+    },
+    "greedy_local_search": {
+      "assignment": [
+        5,
+        4,
+        0
+      ],
+      "sum_rate": 7589942.666313967,
+      "sinr": [
+        1.3594409330823534,
+        2.2400893921772287,
+        3.0705269695707043,
+        1.676353629026197,
+        1.3133437585684826
+      ],
+      "qubo_energy": 28010441027.83848,
+      "c1": true,
+      "c2": true,
+      "c3": true,
+      "c4": true,
+      "feasible": true,
+      "AR_rate": 0.7850496238526347
+    },
+    "valid_subspace_qaoa": {
+      "reps": 1,
+      "grid_steps": 31,
+      "evaluations": 961,
+      "gamma": 4.39822971502571,
+      "beta": 2.3038346126325147,
+      "expected_rate": 7948380.674914285,
+      "top_index": 4,
+      "top_probability": 0.35821310167838477,
+      "optimum_probability": 0.35821310167838477,
+      "sampled_best_index": 4,
+      "sampled_best_count": 351,
+      "shots": 1024,
+      "best_so_far_trace": [],
+      "angle_landscape": [],
+      "gamma_grid": [],
+      "beta_grid": [],
+      "top_assignment": {
+        "assignment": [
+          1,
+          0,
+          5
+        ],
+        "sum_rate": 9668105.602122689,
+        "sinr": [
+          1.1644928564025956,
+          1.0844693285721252,
+          6.675359707728294,
+          2.999607353509374,
+          4.873838822271663
+        ],
+        "qubo_energy": 55269710438.95545,
+        "c1": true,
+        "c2": true,
+        "c3": true,
+        "c4": true,
+        "feasible": true,
+        "AR_rate": 1.0
+      },
+      "expected_AR_rate": 0.8221238991399898,
+      "shots_for_95pct_success": 7
+    },
+    "qaoa_top_k_local_search": {
+      "top_k": 4,
+      "qaoa_raw_best": {
+        "assignment": [
+          1,
+          0,
+          5
+        ],
+        "sum_rate": 9668105.602122689,
+        "sinr": [
+          1.1644928564025956,
+          1.0844693285721252,
+          6.675359707728294,
+          2.999607353509374,
+          4.873838822271663
+        ],
+        "qubo_energy": 55269710438.95545,
+        "c1": true,
+        "c2": true,
+        "c3": true,
+        "c4": true,
+        "feasible": true,
+        "AR_rate": 1.0
+      },
+      "qaoa_best": {
+        "assignment": [
+          1,
+          0,
+          5
+        ],
+        "sum_rate": 9668105.602122689,
+        "sinr": [
+          1.1644928564025956,
+          1.0844693285721252,
+          6.675359707728294,
+          2.999607353509374,
+          4.873838822271663
+        ],
+        "qubo_energy": 55269710438.95545,
+        "c1": true,
+        "c2": true,
+        "c3": true,
+        "c4": true,
+        "feasible": true,
+        "AR_rate": 1.0
+      },
+      "qaoa_local_gain_AR_rate": 0.0,
+      "random_raw_mean_AR_rate": 0.8333084738758246,
+      "random_raw_std_AR_rate": 0.08944212866729453,
+      "random_raw_worst_AR_rate": 0.6658643483413195,
+      "random_raw_best_AR_rate": 1.0,
+      "random_local_gain_mean_AR_rate": 0.12890804907841852,
+      "random_mean_AR_rate": 0.9622165229542432,
+      "random_std_AR_rate": 0.08101534276566709,
+      "random_worst_AR_rate": 0.7156880556999441,
+      "random_best_AR_rate": 1.0,
+      "random_optimum_hit_rate": 0.8125,
+      "qaoa_beats_random_trial_rate": 0.1875,
+      "random_trials": 32
+    },
+    "full_binary_circuit": {
+      "num_qubits": 18,
+      "depth": 103,
+      "ops": {
+        "cx": 306,
+        "rz": 171,
+        "h": 18,
+        "rx": 18,
+        "measure": 18
+      },
+      "two_qubit_gate_count": 306
+    },
+    "full_binary_angle_probe": {
+      "model": "statevector_p1_full_binary_qubo_grid",
+      "objective": "minimize_expected_full_binary_qubo_energy",
+      "grid_steps": 15,
+      "evaluations": 225,
+      "max_qubits": 20,
+      "n_qubits": 18,
+      "feasible_assignment_count": 22,
+      "reference_angles": {
+        "gamma": 4.39822971502571,
+        "beta": 2.3038346126325147,
+        "expected_qubo_energy": 190504726597.1029,
+        "raw_feasible_probability": 0.00038055989602061284,
+        "raw_optimum_probability": 4.6443501386870955e-06,
+        "projected_optimum_probability": 0.09713990555768955,
+        "shots_for_95pct_projected_optimum": 30,
+        "projected_best_assignment": [
+          1,
+          5,
+          0
+        ],
+        "projected_best_probability": 0.23187112544918315,
+        "projected_best_AR_rate": 0.8469180911409141
+      },
+      "qubo_energy_optimized_angles": {
+        "gamma": 0.8975979010256552,
+        "beta": 2.4683942278205517,
+        "expected_qubo_energy": 56767756125.37044,
+        "raw_feasible_probability": 0.0006599248206685231,
+        "raw_optimum_probability": 5.336043479190651e-06,
+        "projected_optimum_probability": 0.10902703052399548,
+        "shots_for_95pct_projected_optimum": 26,
+        "projected_best_assignment": [
+          5,
+          4,
+          0
+        ],
+        "projected_best_probability": 0.1152671616785511,
+        "projected_best_AR_rate": 0.7850496238526347
+      },
+      "interpretation": "This probe optimizes the hardware-executable full-binary QUBO circuit, then evaluates raw feasibility and nearest-feasible projection. It is a simulator check for the next hardware target, not measured hardware evidence."
+    },
+    "recommended_next_step": "Submit this smaller candidate only after checking transpiled depth on the selected backend; then compare raw feasibility and projected AR against the 24-qubit ibm_quebec job."
+  }
+}

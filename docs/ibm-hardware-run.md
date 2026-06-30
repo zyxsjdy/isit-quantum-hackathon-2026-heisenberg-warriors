@@ -76,6 +76,7 @@ scenario:
 | `best_feasible_bitstring` | Preserves the raw measured candidate. |
 | `best_feasible_assignment` | Converts the bitstring into UAV placement. |
 | `best_hardware_AR_rate` | Compares hardware quality against exact feasible optimum. |
+| `random_bitstring_projection_baseline` | Tests whether feasible projection from hardware samples beats projection from uniformly random full-binary bitstrings. |
 | `same_scenario_greedy_AR_rate` | Keeps the hardware comparison fair. |
 | `same_scenario_random_AR_rate` | Shows whether hardware beats random feasible sampling. |
 
@@ -99,11 +100,15 @@ The current completed job is:
 | Best raw feasible AR | 0.829 |
 | Best projected assignment | `[2, 4, 1, 3]` |
 | Best projected AR | 1.000 |
+| Best projected optimum count | 16/1024 |
+| Random-bitstring projection baseline | 73.7/1024 mean projected optimum count |
+| Beats random projection baseline | No |
 
 Interpretation: the device executed the full-binary QUBO circuit, but raw
 feasibility was very low. The optimum recovery came after feasible projection,
-so this is hardware feasibility evidence, not a hardware quantum-advantage
-claim.
+and happened less often than the shot-matched random full-binary bitstring
+projection baseline, so this is hardware feasibility evidence, not a hardware
+quantum-advantage claim.
 
 ## Next Smaller Hardware Target
 
@@ -121,12 +126,21 @@ The first hardware-improvement target is a smaller full-binary QUBO bridge:
 | Shots for 95% optimum sample in simulator | 7 |
 | Pre-ISA circuit depth | 103 |
 | Pre-ISA two-qubit gates | 306 `cx` gates |
+| Full-binary angle probe grid | 15x15 p=1 statevector |
+| Reference full-binary projected optimum probability | 0.097 |
+| QUBO-energy optimized projected optimum probability | 0.109 |
+| QUBO-energy optimized raw feasible probability | 0.0007 |
 
 This is not measured hardware evidence yet. It is the next candidate to submit
 because it reduces the previous 24-qubit bridge from depth 139 and 552 CX gates
 before ISA transpilation to depth 103 and 306 CX gates. Before submitting, run
 the notebook hardware cells with this scenario and check the selected backend's
 ISA depth and two-qubit gate count.
+
+The full-binary angle probe optimizes the hardware-executable QUBO circuit by
+expected QUBO energy, not by looking up the exact optimum assignment. It is a
+pre-hardware simulator check only: projection improves the chance of recovering
+the optimum, but raw feasible probability remains very low.
 
 Regenerate the candidate evidence with:
 

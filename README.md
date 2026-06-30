@@ -28,9 +28,10 @@ The current benchmark evidence is regenerated in
 | Headline `U=4, G=6, S=6` | QAOA top-8 + local search | 1.000 | Matches exact optimum |
 | Headline `U=4, G=6, S=6` | Simulated annealing | 0.993 mean | 0.719 optimum-hit rate across trials |
 | IBM `ibm_quebec` `U=4, G=6, S=6` | Raw feasible hardware sample | 0.829 best | 1/1024 raw samples were feasible |
-| IBM `ibm_quebec` `U=4, G=6, S=6` | Projected hardware candidate | 1.000 best | Full-binary QUBO bridge plus feasible projection |
+| IBM `ibm_quebec` `U=4, G=6, S=6` | Projected hardware candidate | 1.000 best | 16/1024 projected optimum count; below random-bitstring projection baseline |
 | Next hardware candidate `U=3, G=6, S=5` | QAOA top state | 1.000 | 18 qubits, 22 feasible assignments |
 | Next hardware candidate `U=3, G=6, S=5` | Full-binary circuit | - | Depth 103, 306 CX gates before ISA transpilation |
+| Next hardware candidate `U=3, G=6, S=5` | Full-binary angle probe | 0.109 projected optimum p | QUBO-energy grid improves from 0.097 reference projected optimum p |
 | Multi-seed suite `U=3, G=6, S=5` | QAOA raw top-8 | 0.994 mean | 25 evaluated seeds |
 | Multi-seed suite `U=3, G=6, S=5` | QAOA top-8 + local search | 0.999 mean | 23/25 optimum hits |
 | Multi-seed suite `U=3, G=6, S=5` | Simulated annealing | 0.986 mean | 4/25 optimum hits |
@@ -117,6 +118,7 @@ expected.
 | --- | --- |
 | No measured hardware result yet | Resolved. IBM job `d91i01vccmks73d56i80` on `ibm_quebec` completed with 1024 shots. Raw feasible sampling was 1/1024; feasible projection recovered the exact optimum. |
 | Hardware path differs from headline valid-subspace solver | Still true. The hardware path remains a full-binary QUBO bridge and should not be claimed as the custom valid-subspace mixer. |
+| Hardware projection may look too strong | Quantified. The IBM projected optimum count was 16/1024, below the 73.7/1024 mean from a shot-matched random full-binary projection baseline. |
 | Small scale | Reduced, not eliminated. The benchmark now includes a `U=4, G=7, S=7` scale challenge with 724 feasible assignments and 28 full-binary variables. |
 | Local search may dominate | Reduced. The JSON and README now report raw QAOA top-K quality and local-search gain separately. |
 | Simulated annealing is close | Kept explicit. SA remains a strong baseline, especially on stress cases, but trails QAOA + local in the recorded mean AR and optimum-hit metrics. |
@@ -191,8 +193,10 @@ CZ gates.
 Raw hardware feasibility was low: only 1 of 1024 measured bitstrings was
 already feasible, with AR 0.829. Feasible projection/post-processing recovered
 the exact optimum assignment `[2, 4, 1, 3]` with AR 1.000 from the measured
-samples. Present this as real-hardware execution evidence, not hardware
-quantum-advantage evidence.
+samples, but the projected optimum appeared 16 times versus 73.7 times on
+average for a shot-matched random full-binary bitstring projection baseline
+over 256 deterministic trials. Present this as real-hardware execution
+evidence, not hardware quantum-advantage evidence.
 
 The next hardware-improvement target is a smaller `U=3, G=6, S=5`, seed `35`
 case recorded in `hardware_demo_candidate`. It uses 18 full-binary qubits and
@@ -200,6 +204,13 @@ the pre-ISA circuit has depth 103 with 306 CX gates, down from the 24-qubit
 headline hardware bridge with depth 139 and 552 CX gates before ISA
 transpilation. On the valid-subspace simulator this candidate has greedy AR
 0.785, QAOA top-state AR 1.000, and optimum probability 0.358.
+
+A statevector probe of the hardware-executable full-binary circuit now checks
+angles on the 18-qubit candidate before another IBM submission. Reusing the
+valid-subspace angles gives projected optimum probability 0.097; a 15x15
+QUBO-energy grid improves that to 0.109, with raw feasible probability still
+only 0.0007. This supports trying a smaller hardware job, but the hardware
+claim remains separate from the valid-subspace simulator headline.
 
 See `docs/ibm-hardware-run.md` for the exact install, credential, and notebook
 cells to change when submitting a hardware job.

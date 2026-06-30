@@ -1,4 +1,5 @@
 import unittest
+from argparse import Namespace
 
 import numpy as np
 
@@ -11,6 +12,9 @@ from qaoa_isac_benchmark import (
     enumerate_assignments,
     extract_sampler_counts,
     parse_float_list,
+    run_scale_challenge,
+    summarize_full_binary_angle_probe,
+    summarize_random_bitstring_projection_baseline,
 )
 from qaoa_isac_env import SystemParams
 
@@ -120,6 +124,85 @@ class BenchmarkDiagnosticsTest(unittest.TestCase):
         self.assertEqual(summary["num_qubits"], 6)
         self.assertGreater(summary["depth"], 0)
         self.assertIn("measure", summary["ops"])
+
+    def test_random_bitstring_projection_baseline_is_shot_matched(self):
+        env, states, exact, _ = self.small_case()
+
+        baseline = summarize_random_bitstring_projection_baseline(
+            states,
+            env,
+            exact.sum_rate,
+            shots=32,
+            random_trials=5,
+            seed=13,
+        )
+
+        self.assertEqual(
+            baseline["model"],
+            "uniform_full_binary_bitstrings_then_nearest_feasible_projection",
+        )
+        self.assertEqual(baseline["n_qubits"], env.n_qubits)
+        self.assertEqual(baseline["shots_per_trial"], 32)
+        self.assertEqual(baseline["random_trials"], 5)
+        self.assertGreaterEqual(baseline["projected_optimum_rate_mean"], 0.0)
+        self.assertLessEqual(baseline["projected_optimum_rate_mean"], 1.0)
+        self.assertGreaterEqual(baseline["projected_best_AR_rate_mean"], 0.0)
+        self.assertLessEqual(baseline["projected_best_AR_rate_mean"], 1.0)
+        self.assertGreaterEqual(
+            baseline["projected_best_AR_rate_mean"],
+            baseline["projected_mean_AR_rate_mean"],
+        )
+
+    def test_full_binary_angle_probe_reports_projected_probabilities(self):
+        env, states, exact, _ = self.small_case()
+
+        probe = summarize_full_binary_angle_probe(
+            env,
+            states,
+            exact,
+            reference_gamma=0.2,
+            reference_beta=0.3,
+            grid_steps=3,
+        )
+
+        self.assertEqual(probe["model"], "statevector_p1_full_binary_qubo_grid")
+        self.assertEqual(probe["grid_steps"], 3)
+        self.assertEqual(probe["evaluations"], 9)
+        self.assertIn("reference_angles", probe)
+        self.assertIn("qubo_energy_optimized_angles", probe)
+        for key in ("reference_angles", "qubo_energy_optimized_angles"):
+            self.assertGreaterEqual(probe[key]["raw_feasible_probability"], 0.0)
+            self.assertLessEqual(probe[key]["raw_feasible_probability"], 1.0)
+            self.assertGreaterEqual(probe[key]["projected_optimum_probability"], 0.0)
+            self.assertLessEqual(probe[key]["projected_optimum_probability"], 1.0)
+            self.assertLessEqual(probe[key]["projected_best_AR_rate"], 1.0)
+
+    def test_scale_challenge_omits_headline_hardware_evidence(self):
+        args = Namespace(
+            scale_uavs=2,
+            scale_grid_points=4,
+            scale_survivors=2,
+            scale_antennas=2,
+            scale_gamma_min=0.0,
+            scale_seed=3,
+            scale_grid_steps=3,
+            scale_shots=16,
+            scale_top_k=2,
+            scale_random_trials=2,
+            scale_sweep_top_k="1,2",
+            scale_sweep_random_trials=2,
+            scale_sa_restarts=2,
+            scale_sa_steps=4,
+            scale_sa_trials=2,
+            scale_sa_start_temperature=0.25,
+            scale_sa_end_temperature=0.01,
+            noise_levels="0,1",
+            verbose=False,
+        )
+
+        result = run_scale_challenge(args)
+
+        self.assertNotIn("hardware_evidence", result)
 
 
 if __name__ == "__main__":
