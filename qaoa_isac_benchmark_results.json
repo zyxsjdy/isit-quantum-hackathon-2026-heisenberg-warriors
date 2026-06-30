@@ -1,30 +1,32 @@
 {
   "scenario": {
-    "U": 3,
+    "U": 4,
     "G": 6,
-    "S": 5,
+    "S": 6,
     "Nt": 4,
-    "n_qubits_full_binary": 18,
+    "n_qubits_full_binary": 24,
     "Gamma_min": 0.5,
-    "seed": 35,
-    "valid_no_colocation_count": 120,
-    "feasible_assignment_count": 22
+    "seed": 67,
+    "valid_no_colocation_count": 360,
+    "feasible_assignment_count": 329
   },
   "exact": {
     "assignment": [
+      2,
+      4,
       1,
-      0,
-      5
+      3
     ],
-    "sum_rate": 9668105.602122689,
+    "sum_rate": 7626835.7383244345,
     "sinr": [
-      1.1644928564025956,
-      1.0844693285721252,
-      6.675359707728294,
-      2.999607353509374,
-      4.873838822271663
+      1.458553773237394,
+      2.426967059314931,
+      1.4540896406198138,
+      0.9602544618651788,
+      1.0006651680160255,
+      1.4374706975556204
     ],
-    "qubo_energy": 55269710438.95545,
+    "qubo_energy": 30626027288.2396,
     "c1": true,
     "c2": true,
     "c3": true,
@@ -34,75 +36,81 @@
   },
   "greedy": {
     "assignment": [
-      5,
+      3,
+      2,
       4,
-      0
+      1
     ],
-    "sum_rate": 7589942.666313967,
+    "sum_rate": 6186467.585750409,
     "sinr": [
-      1.3594409330823534,
-      2.2400893921772287,
-      3.0705269695707043,
-      1.676353629026197,
-      1.3133437585684826
+      1.0968930569881603,
+      1.2212781470908591,
+      1.3749628467955128,
+      0.9660124844843335,
+      0.8850359689491777,
+      0.7765210256209597
     ],
-    "qubo_energy": 28010441027.83848,
+    "qubo_energy": 45904078551.68498,
     "c1": true,
     "c2": true,
     "c3": true,
     "c4": true,
     "feasible": true,
-    "AR_rate": 0.7850496238526347
+    "AR_rate": 0.8111447260708325
   },
   "greedy_local_search": {
     "assignment": [
-      5,
+      3,
+      2,
       4,
-      0
+      1
     ],
-    "sum_rate": 7589942.666313967,
+    "sum_rate": 6186467.585750409,
     "sinr": [
-      1.3594409330823534,
-      2.2400893921772287,
-      3.0705269695707043,
-      1.676353629026197,
-      1.3133437585684826
+      1.0968930569881603,
+      1.2212781470908591,
+      1.3749628467955128,
+      0.9660124844843335,
+      0.8850359689491777,
+      0.7765210256209597
     ],
-    "qubo_energy": 28010441027.83848,
+    "qubo_energy": 45904078551.68498,
     "c1": true,
     "c2": true,
     "c3": true,
     "c4": true,
     "feasible": true,
-    "AR_rate": 0.7850496238526347
+    "AR_rate": 0.8111447260708325
   },
   "valid_subspace_qaoa": {
     "reps": 1,
-    "grid_steps": 61,
-    "gamma": 4.50294947014537,
-    "beta": 2.3038346126325147,
-    "expected_rate": 7949313.013809815,
-    "top_index": 4,
-    "top_probability": 0.35953015397756155,
-    "optimum_probability": 0.35953015397756155,
-    "sampled_best_index": 4,
-    "sampled_best_count": 352,
+    "grid_steps": 81,
+    "gamma": 4.71238898038469,
+    "beta": 2.9845130209103035,
+    "expected_rate": 6179316.809450518,
+    "top_index": 155,
+    "top_probability": 0.01898234716821435,
+    "optimum_probability": 0.01898234716821435,
+    "sampled_best_index": 155,
+    "sampled_best_count": 22,
     "shots": 1024,
     "top_assignment": {
       "assignment": [
+        2,
+        4,
         1,
-        0,
-        5
+        3
       ],
-      "sum_rate": 9668105.602122689,
+      "sum_rate": 7626835.7383244345,
       "sinr": [
-        1.1644928564025956,
-        1.0844693285721252,
-        6.675359707728294,
-        2.999607353509374,
-        4.873838822271663
+        1.458553773237394,
+        2.426967059314931,
+        1.4540896406198138,
+        0.9602544618651788,
+        1.0006651680160255,
+        1.4374706975556204
       ],
-      "qubo_energy": 55269710438.95545,
+      "qubo_energy": 30626027288.2396,
       "c1": true,
       "c2": true,
       "c3": true,
@@ -112,19 +120,21 @@
     },
     "sampled_best_assignment": {
       "assignment": [
+        2,
+        4,
         1,
-        0,
-        5
+        3
       ],
-      "sum_rate": 9668105.602122689,
+      "sum_rate": 7626835.7383244345,
       "sinr": [
-        1.1644928564025956,
-        1.0844693285721252,
-        6.675359707728294,
-        2.999607353509374,
-        4.873838822271663
+        1.458553773237394,
+        2.426967059314931,
+        1.4540896406198138,
+        0.9602544618651788,
+        1.0006651680160255,
+        1.4374706975556204
       ],
-      "qubo_energy": 55269710438.95545,
+      "qubo_energy": 30626027288.2396,
       "c1": true,
       "c2": true,
       "c3": true,
@@ -132,142 +142,918 @@
       "feasible": true,
       "AR_rate": 1.0
     },
-    "expected_AR_rate": 0.8222203336364569,
-    "shot_success_probability": 1.0,
-    "shots_for_95pct_success": 7,
-    "expected_samples_to_optimum": 2.781407870624422,
-    "enrichment_vs_uniform": 7.909663387506354,
+    "expected_AR_rate": 0.8102071450680113,
+    "shot_success_probability": 0.9999999970003812,
+    "shots_for_95pct_success": 157,
+    "expected_samples_to_optimum": 52.68052423329844,
+    "enrichment_vs_uniform": 6.24519221834252,
     "top_probabilities": [
       {
         "assignment": [
+          2,
+          4,
           1,
-          0,
-          5
+          3
         ],
-        "sum_rate": 9668105.602122689,
-        "probability": 0.35953015397756155,
+        "sum_rate": 7626835.7383244345,
+        "probability": 0.01898234716821435,
         "AR_rate": 1.0
       },
       {
         "assignment": [
           0,
+          2,
           5,
+          3
+        ],
+        "sum_rate": 6924864.513216539,
+        "probability": 0.01837576536641664,
+        "AR_rate": 0.9079603587657555
+      },
+      {
+        "assignment": [
+          2,
+          5,
+          1,
+          3
+        ],
+        "sum_rate": 7037095.144562291,
+        "probability": 0.017051519927997236,
+        "AR_rate": 0.9226755873607282
+      },
+      {
+        "assignment": [
+          2,
+          4,
+          5,
+          3
+        ],
+        "sum_rate": 7061239.882324724,
+        "probability": 0.015086653378271309,
+        "AR_rate": 0.925841348180921
+      },
+      {
+        "assignment": [
+          2,
+          4,
+          3,
           1
         ],
-        "sum_rate": 6919347.700684925,
-        "probability": 0.07923766708735872,
-        "AR_rate": 0.7156880556999441
+        "sum_rate": 7000761.386410372,
+        "probability": 0.01404592476364881,
+        "AR_rate": 0.9179116512542583
       },
       {
         "assignment": [
-          5,
-          4,
-          0
-        ],
-        "sum_rate": 7589942.666313967,
-        "probability": 0.07396302601553648,
-        "AR_rate": 0.7850496238526347
-      },
-      {
-        "assignment": [
-          1,
-          5,
-          0
-        ],
-        "sum_rate": 8188093.541498525,
-        "probability": 0.07169766709616059,
-        "AR_rate": 0.8469180911409141
-      },
-      {
-        "assignment": [
-          5,
           0,
-          1
-        ],
-        "sum_rate": 7843784.821426058,
-        "probability": 0.0603876797473669,
-        "AR_rate": 0.8113052488487413
-      },
-      {
-        "assignment": [
-          1,
           2,
-          5
-        ],
-        "sum_rate": 6796650.140870997,
-        "probability": 0.04736767694949593,
-        "AR_rate": 0.7029970938028183
-      },
-      {
-        "assignment": [
-          4,
-          0,
-          5
-        ],
-        "sum_rate": 7813194.431022172,
-        "probability": 0.04689709359284664,
-        "AR_rate": 0.8081411966897362
-      },
-      {
-        "assignment": [
-          4,
           1,
-          5
+          3
         ],
-        "sum_rate": 5446532.257273136,
-        "probability": 0.03926372846628755,
-        "AR_rate": 0.5633505136804999
+        "sum_rate": 6838679.154990911,
+        "probability": 0.01268638955600595,
+        "AR_rate": 0.8966600815364254
       },
       {
         "assignment": [
-          4,
           2,
-          5
-        ],
-        "sum_rate": 5357557.464477491,
-        "probability": 0.036629789919858116,
-        "AR_rate": 0.5541475946747217
-      },
-      {
-        "assignment": [
+          3,
           1,
-          4,
           5
         ],
-        "sum_rate": 6591208.702485788,
-        "probability": 0.03637916536693057,
-        "AR_rate": 0.6817476942989379
+        "sum_rate": 6028912.380163091,
+        "probability": 0.011839174512012522,
+        "AR_rate": 0.7904867217564598
       },
       {
         "assignment": [
-          5,
+          2,
+          4,
+          3,
+          5
+        ],
+        "sum_rate": 7566898.095787916,
+        "probability": 0.011795350887916596,
+        "AR_rate": 0.9921412175910208
+      },
+      {
+        "assignment": [
           0,
+          2,
+          3,
           4
         ],
-        "sum_rate": 7464153.559044482,
-        "probability": 0.030521411161723938,
-        "AR_rate": 0.7720388943006253
+        "sum_rate": 6764457.663221736,
+        "probability": 0.011490560554399402,
+        "AR_rate": 0.886928458316036
       },
       {
         "assignment": [
+          2,
           4,
           5,
-          0
+          1
         ],
-        "sum_rate": 7489662.8076361865,
-        "probability": 0.01921142381293023,
-        "AR_rate": 0.7746773893317619
+        "sum_rate": 6129601.2455214895,
+        "probability": 0.010665337924432416,
+        "AR_rate": 0.803688640456825
+      },
+      {
+        "assignment": [
+          2,
+          5,
+          3,
+          4
+        ],
+        "sum_rate": 6691218.85567425,
+        "probability": 0.0104679626945251,
+        "AR_rate": 0.8773256806949754
+      },
+      {
+        "assignment": [
+          0,
+          3,
+          1,
+          2
+        ],
+        "sum_rate": 6951181.289938354,
+        "probability": 0.010115630641197302,
+        "AR_rate": 0.9114109085907077
       }
     ]
   },
+  "qaoa_top_k_local_search": {
+    "top_k": 8,
+    "qaoa_best": {
+      "assignment": [
+        2,
+        4,
+        1,
+        3
+      ],
+      "sum_rate": 7626835.7383244345,
+      "sinr": [
+        1.458553773237394,
+        2.426967059314931,
+        1.4540896406198138,
+        0.9602544618651788,
+        1.0006651680160255,
+        1.4374706975556204
+      ],
+      "qubo_energy": 30626027288.2396,
+      "c1": true,
+      "c2": true,
+      "c3": true,
+      "c4": true,
+      "feasible": true,
+      "AR_rate": 1.0
+    },
+    "random_mean_AR_rate": 0.9879440157727161,
+    "random_optimum_hit_rate": 0.75,
+    "random_trials": 16
+  },
   "random_feasible": {
-    "mean_rate": 6614375.7605538005,
-    "std_rate": 1180601.7960294308,
-    "best_rate": 9668105.602122689,
-    "uniform_optimum_probability": 0.045454545454545456,
-    "mean_AR_rate": 0.6841439298202924,
-    "shot_success_probability": 1.0,
-    "shots_for_95pct_success": 65,
-    "expected_samples_to_optimum": 22.0
+    "mean_rate": 5819768.231162931,
+    "std_rate": 574297.7181935214,
+    "best_rate": 7626835.7383244345,
+    "uniform_optimum_probability": 0.00303951367781155,
+    "mean_AR_rate": 0.7630645828543169,
+    "shot_success_probability": 0.9557190978848167,
+    "shots_for_95pct_success": 985,
+    "expected_samples_to_optimum": 329.0
+  },
+  "suite": {
+    "scenario": {
+      "U": 3,
+      "G": 6,
+      "S": 5,
+      "Nt": 4,
+      "n_qubits_full_binary": 18,
+      "Gamma_min": 0.5,
+      "seed_range": "1:60",
+      "top_k": 8,
+      "random_trials": 8,
+      "stress_gap": 0.1
+    },
+    "all": {
+      "count": 25,
+      "mean_feasible_assignments": 31.56,
+      "mean_greedy_AR_rate": 0.8964205278354249,
+      "mean_greedy_local_AR_rate": 0.9117333436748255,
+      "mean_qaoa_top_AR_rate": 0.9296209715718707,
+      "mean_qaoa_top_k_local_AR_rate": 0.9992119144089444,
+      "mean_random_top_k_local_AR_rate": 0.9898705552308341,
+      "mean_qaoa_optimum_probability": 0.10118078500715472,
+      "qaoa_top_k_optimum_hits": 23,
+      "qaoa_top_k_beats_greedy": 21,
+      "qaoa_top_k_beats_random_top_k": 14
+    },
+    "stress": {
+      "count": 12,
+      "mean_feasible_assignments": 33.416666666666664,
+      "mean_greedy_AR_rate": 0.8254280454179196,
+      "mean_greedy_local_AR_rate": 0.8499826989410851,
+      "mean_qaoa_top_AR_rate": 0.9037940746739804,
+      "mean_qaoa_top_k_local_AR_rate": 1.0,
+      "mean_random_top_k_local_AR_rate": 0.990088602990889,
+      "mean_qaoa_optimum_probability": 0.10966554830535469,
+      "qaoa_top_k_optimum_hits": 12,
+      "qaoa_top_k_beats_greedy": 12,
+      "qaoa_top_k_beats_random_top_k": 8
+    },
+    "rows": [
+      {
+        "seed": 5,
+        "feasible_assignment_count": 9,
+        "exact_sum_rate": 7390436.009345055,
+        "greedy_AR_rate": 0.9223867672904719,
+        "greedy_local_AR_rate": 0.984355918132022,
+        "qaoa_top_AR_rate": 1.0,
+        "qaoa_top_k_local_AR_rate": 1.0,
+        "random_top_k_local_AR_rate": 1.0,
+        "random_top_k_optimum_hit_rate": 1.0,
+        "qaoa_optimum_probability": 0.21551008100686897,
+        "qaoa_top_assignment": [
+          0,
+          5,
+          4
+        ],
+        "qaoa_top_k_assignment": [
+          0,
+          5,
+          4
+        ]
+      },
+      {
+        "seed": 7,
+        "feasible_assignment_count": 20,
+        "exact_sum_rate": 9013163.177219309,
+        "greedy_AR_rate": 0.9161057959238506,
+        "greedy_local_AR_rate": 0.9161057959238506,
+        "qaoa_top_AR_rate": 1.0,
+        "qaoa_top_k_local_AR_rate": 1.0,
+        "random_top_k_local_AR_rate": 1.0,
+        "random_top_k_optimum_hit_rate": 1.0,
+        "qaoa_optimum_probability": 0.13994657605448016,
+        "qaoa_top_assignment": [
+          1,
+          0,
+          5
+        ],
+        "qaoa_top_k_assignment": [
+          1,
+          0,
+          5
+        ]
+      },
+      {
+        "seed": 8,
+        "feasible_assignment_count": 25,
+        "exact_sum_rate": 8273480.382507264,
+        "greedy_AR_rate": 0.8341713024538914,
+        "greedy_local_AR_rate": 0.8341713024538914,
+        "qaoa_top_AR_rate": 0.8473267811290345,
+        "qaoa_top_k_local_AR_rate": 1.0,
+        "random_top_k_local_AR_rate": 0.9908095882265677,
+        "random_top_k_optimum_hit_rate": 0.875,
+        "qaoa_optimum_probability": 0.01715737393293287,
+        "qaoa_top_assignment": [
+          2,
+          4,
+          5
+        ],
+        "qaoa_top_k_assignment": [
+          2,
+          5,
+          4
+        ]
+      },
+      {
+        "seed": 9,
+        "feasible_assignment_count": 56,
+        "exact_sum_rate": 7659371.3549180385,
+        "greedy_AR_rate": 0.8065667697536251,
+        "greedy_local_AR_rate": 0.8835482987092228,
+        "qaoa_top_AR_rate": 1.0,
+        "qaoa_top_k_local_AR_rate": 1.0,
+        "random_top_k_local_AR_rate": 0.9884607087414156,
+        "random_top_k_optimum_hit_rate": 0.875,
+        "qaoa_optimum_probability": 0.08365094994547063,
+        "qaoa_top_assignment": [
+          1,
+          4,
+          3
+        ],
+        "qaoa_top_k_assignment": [
+          1,
+          4,
+          3
+        ]
+      },
+      {
+        "seed": 11,
+        "feasible_assignment_count": 17,
+        "exact_sum_rate": 7458539.925527209,
+        "greedy_AR_rate": 0.8599424976845116,
+        "greedy_local_AR_rate": 0.8599424976845116,
+        "qaoa_top_AR_rate": 0.9304158165481871,
+        "qaoa_top_k_local_AR_rate": 1.0,
+        "random_top_k_local_AR_rate": 1.0,
+        "random_top_k_optimum_hit_rate": 1.0,
+        "qaoa_optimum_probability": 0.14849585920420322,
+        "qaoa_top_assignment": [
+          0,
+          5,
+          4
+        ],
+        "qaoa_top_k_assignment": [
+          2,
+          0,
+          4
+        ]
+      },
+      {
+        "seed": 12,
+        "feasible_assignment_count": 26,
+        "exact_sum_rate": 10421078.55844702,
+        "greedy_AR_rate": 0.8799180848425118,
+        "greedy_local_AR_rate": 0.8799180848425118,
+        "qaoa_top_AR_rate": 0.9748425169826208,
+        "qaoa_top_k_local_AR_rate": 1.0,
+        "random_top_k_local_AR_rate": 0.9968553146228276,
+        "random_top_k_optimum_hit_rate": 0.875,
+        "qaoa_optimum_probability": 0.06207880393500026,
+        "qaoa_top_assignment": [
+          0,
+          1,
+          4
+        ],
+        "qaoa_top_k_assignment": [
+          1,
+          4,
+          5
+        ]
+      },
+      {
+        "seed": 15,
+        "feasible_assignment_count": 72,
+        "exact_sum_rate": 9731319.21378253,
+        "greedy_AR_rate": 0.8727716642484086,
+        "greedy_local_AR_rate": 0.8727716642484086,
+        "qaoa_top_AR_rate": 0.6862287271260977,
+        "qaoa_top_k_local_AR_rate": 1.0,
+        "random_top_k_local_AR_rate": 0.9969516408088814,
+        "random_top_k_optimum_hit_rate": 0.875,
+        "qaoa_optimum_probability": 0.0414502067341915,
+        "qaoa_top_assignment": [
+          2,
+          4,
+          0
+        ],
+        "qaoa_top_k_assignment": [
+          5,
+          3,
+          4
+        ]
+      },
+      {
+        "seed": 19,
+        "feasible_assignment_count": 26,
+        "exact_sum_rate": 10293281.793934833,
+        "greedy_AR_rate": 1.0,
+        "greedy_local_AR_rate": 1.0,
+        "qaoa_top_AR_rate": 0.8510301969187214,
+        "qaoa_top_k_local_AR_rate": 1.0,
+        "random_top_k_local_AR_rate": 0.9664212741234595,
+        "random_top_k_optimum_hit_rate": 0.75,
+        "qaoa_optimum_probability": 0.08832767403597369,
+        "qaoa_top_assignment": [
+          1,
+          3,
+          4
+        ],
+        "qaoa_top_k_assignment": [
+          3,
+          0,
+          1
+        ]
+      },
+      {
+        "seed": 20,
+        "feasible_assignment_count": 43,
+        "exact_sum_rate": 9155974.354322467,
+        "greedy_AR_rate": 0.8834962914531097,
+        "greedy_local_AR_rate": 0.8834962914531097,
+        "qaoa_top_AR_rate": 0.8414564875554269,
+        "qaoa_top_k_local_AR_rate": 1.0,
+        "random_top_k_local_AR_rate": 0.964209170988777,
+        "random_top_k_optimum_hit_rate": 0.625,
+        "qaoa_optimum_probability": 0.05003108327139001,
+        "qaoa_top_assignment": [
+          0,
+          2,
+          4
+        ],
+        "qaoa_top_k_assignment": [
+          0,
+          4,
+          2
+        ]
+      },
+      {
+        "seed": 21,
+        "feasible_assignment_count": 20,
+        "exact_sum_rate": 6761601.2043289635,
+        "greedy_AR_rate": 1.0,
+        "greedy_local_AR_rate": 1.0,
+        "qaoa_top_AR_rate": 0.8723949688918432,
+        "qaoa_top_k_local_AR_rate": 1.0,
+        "random_top_k_local_AR_rate": 0.9361974844459215,
+        "random_top_k_optimum_hit_rate": 0.5,
+        "qaoa_optimum_probability": 0.09478551371606708,
+        "qaoa_top_assignment": [
+          3,
+          0,
+          5
+        ],
+        "qaoa_top_k_assignment": [
+          0,
+          3,
+          5
+        ]
+      },
+      {
+        "seed": 27,
+        "feasible_assignment_count": 9,
+        "exact_sum_rate": 7255393.355052591,
+        "greedy_AR_rate": 1.0,
+        "greedy_local_AR_rate": 1.0,
+        "qaoa_top_AR_rate": 1.0,
+        "qaoa_top_k_local_AR_rate": 1.0,
+        "random_top_k_local_AR_rate": 1.0,
+        "random_top_k_optimum_hit_rate": 1.0,
+        "qaoa_optimum_probability": 0.22157180085662706,
+        "qaoa_top_assignment": [
+          0,
+          4,
+          3
+        ],
+        "qaoa_top_k_assignment": [
+          0,
+          4,
+          3
+        ]
+      },
+      {
+        "seed": 28,
+        "feasible_assignment_count": 21,
+        "exact_sum_rate": 9024654.089522928,
+        "greedy_AR_rate": 0.693167283304288,
+        "greedy_local_AR_rate": 0.693167283304288,
+        "qaoa_top_AR_rate": 0.8847761533843808,
+        "qaoa_top_k_local_AR_rate": 1.0,
+        "random_top_k_local_AR_rate": 0.9711940383460952,
+        "random_top_k_optimum_hit_rate": 0.75,
+        "qaoa_optimum_probability": 0.09292153362298776,
+        "qaoa_top_assignment": [
+          2,
+          5,
+          1
+        ],
+        "qaoa_top_k_assignment": [
+          5,
+          1,
+          2
+        ]
+      },
+      {
+        "seed": 30,
+        "feasible_assignment_count": 19,
+        "exact_sum_rate": 9541123.913281979,
+        "greedy_AR_rate": 0.785667231175385,
+        "greedy_local_AR_rate": 0.785667231175385,
+        "qaoa_top_AR_rate": 0.9202571796449192,
+        "qaoa_top_k_local_AR_rate": 1.0,
+        "random_top_k_local_AR_rate": 1.0,
+        "random_top_k_optimum_hit_rate": 1.0,
+        "qaoa_optimum_probability": 0.08957745375841003,
+        "qaoa_top_assignment": [
+          5,
+          2,
+          3
+        ],
+        "qaoa_top_k_assignment": [
+          1,
+          2,
+          3
+        ]
+      },
+      {
+        "seed": 32,
+        "feasible_assignment_count": 20,
+        "exact_sum_rate": 8125130.913910319,
+        "greedy_AR_rate": 0.921993456402378,
+        "greedy_local_AR_rate": 0.921993456402378,
+        "qaoa_top_AR_rate": 0.9936449049409761,
+        "qaoa_top_k_local_AR_rate": 0.9936449049409761,
+        "random_top_k_local_AR_rate": 0.9773208165710825,
+        "random_top_k_optimum_hit_rate": 0.25,
+        "qaoa_optimum_probability": 0.04999999999999982,
+        "qaoa_top_assignment": [
+          1,
+          0,
+          2
+        ],
+        "qaoa_top_k_assignment": [
+          1,
+          0,
+          2
+        ]
+      },
+      {
+        "seed": 33,
+        "feasible_assignment_count": 65,
+        "exact_sum_rate": 9064746.055512099,
+        "greedy_AR_rate": 0.973804597134522,
+        "greedy_local_AR_rate": 1.0,
+        "qaoa_top_AR_rate": 0.9866529552826356,
+        "qaoa_top_k_local_AR_rate": 0.9866529552826356,
+        "random_top_k_local_AR_rate": 1.0,
+        "random_top_k_optimum_hit_rate": 1.0,
+        "qaoa_optimum_probability": 0.012622706359236504,
+        "qaoa_top_assignment": [
+          4,
+          1,
+          5
+        ],
+        "qaoa_top_k_assignment": [
+          4,
+          1,
+          5
+        ]
+      },
+      {
+        "seed": 35,
+        "feasible_assignment_count": 22,
+        "exact_sum_rate": 9668105.602122689,
+        "greedy_AR_rate": 0.7850496238526347,
+        "greedy_local_AR_rate": 0.7850496238526347,
+        "qaoa_top_AR_rate": 1.0,
+        "qaoa_top_k_local_AR_rate": 1.0,
+        "random_top_k_local_AR_rate": 0.9808647613926142,
+        "random_top_k_optimum_hit_rate": 0.875,
+        "qaoa_optimum_probability": 0.35821310167838466,
+        "qaoa_top_assignment": [
+          1,
+          0,
+          5
+        ],
+        "qaoa_top_k_assignment": [
+          1,
+          0,
+          5
+        ]
+      },
+      {
+        "seed": 36,
+        "feasible_assignment_count": 43,
+        "exact_sum_rate": 7245565.694231402,
+        "greedy_AR_rate": 0.8949357360638587,
+        "greedy_local_AR_rate": 0.9668720510539552,
+        "qaoa_top_AR_rate": 1.0,
+        "qaoa_top_k_local_AR_rate": 1.0,
+        "random_top_k_local_AR_rate": 0.9917180127634888,
+        "random_top_k_optimum_hit_rate": 0.75,
+        "qaoa_optimum_probability": 0.17757598324938217,
+        "qaoa_top_assignment": [
+          1,
+          2,
+          0
+        ],
+        "qaoa_top_k_assignment": [
+          1,
+          2,
+          0
+        ]
+      },
+      {
+        "seed": 38,
+        "feasible_assignment_count": 7,
+        "exact_sum_rate": 7257253.721729003,
+        "greedy_AR_rate": 0.9124559877847263,
+        "greedy_local_AR_rate": 0.9124559877847263,
+        "qaoa_top_AR_rate": 0.9124559877847263,
+        "qaoa_top_k_local_AR_rate": 1.0,
+        "random_top_k_local_AR_rate": 1.0,
+        "random_top_k_optimum_hit_rate": 1.0,
+        "qaoa_optimum_probability": 0.14285714285714254,
+        "qaoa_top_assignment": [
+          1,
+          4,
+          0
+        ],
+        "qaoa_top_k_assignment": [
+          4,
+          1,
+          5
+        ]
+      },
+      {
+        "seed": 41,
+        "feasible_assignment_count": 46,
+        "exact_sum_rate": 9950282.8567684,
+        "greedy_AR_rate": 0.9641580489393274,
+        "greedy_local_AR_rate": 0.9641580489393274,
+        "qaoa_top_AR_rate": 0.9617685819661971,
+        "qaoa_top_k_local_AR_rate": 1.0,
+        "random_top_k_local_AR_rate": 1.0,
+        "random_top_k_optimum_hit_rate": 1.0,
+        "qaoa_optimum_probability": 0.04898731296846466,
+        "qaoa_top_assignment": [
+          3,
+          0,
+          2
+        ],
+        "qaoa_top_k_assignment": [
+          4,
+          0,
+          2
+        ]
+      },
+      {
+        "seed": 44,
+        "feasible_assignment_count": 19,
+        "exact_sum_rate": 7598648.276498593,
+        "greedy_AR_rate": 1.0,
+        "greedy_local_AR_rate": 1.0,
+        "qaoa_top_AR_rate": 1.0,
+        "qaoa_top_k_local_AR_rate": 1.0,
+        "random_top_k_local_AR_rate": 1.0,
+        "random_top_k_optimum_hit_rate": 1.0,
+        "qaoa_optimum_probability": 0.09995985971782943,
+        "qaoa_top_assignment": [
+          3,
+          5,
+          1
+        ],
+        "qaoa_top_k_assignment": [
+          3,
+          5,
+          1
+        ]
+      },
+      {
+        "seed": 47,
+        "feasible_assignment_count": 35,
+        "exact_sum_rate": 8745407.662178202,
+        "greedy_AR_rate": 0.9944809045070272,
+        "greedy_local_AR_rate": 0.9944809045070272,
+        "qaoa_top_AR_rate": 0.9808546839332204,
+        "qaoa_top_k_local_AR_rate": 1.0,
+        "random_top_k_local_AR_rate": 0.9986202261267568,
+        "random_top_k_optimum_hit_rate": 0.75,
+        "qaoa_optimum_probability": 0.023406348492544908,
+        "qaoa_top_assignment": [
+          2,
+          4,
+          5
+        ],
+        "qaoa_top_k_assignment": [
+          0,
+          2,
+          4
+        ]
+      },
+      {
+        "seed": 51,
+        "feasible_assignment_count": 51,
+        "exact_sum_rate": 8494557.176456612,
+        "greedy_AR_rate": 0.9734179911374233,
+        "greedy_local_AR_rate": 0.9734179911374233,
+        "qaoa_top_AR_rate": 0.8859023468618082,
+        "qaoa_top_k_local_AR_rate": 1.0,
+        "random_top_k_local_AR_rate": 0.9933544977843558,
+        "random_top_k_optimum_hit_rate": 0.75,
+        "qaoa_optimum_probability": 0.04569174758590485,
+        "qaoa_top_assignment": [
+          1,
+          2,
+          3
+        ],
+        "qaoa_top_k_assignment": [
+          2,
+          3,
+          1
+        ]
+      },
+      {
+        "seed": 53,
+        "feasible_assignment_count": 15,
+        "exact_sum_rate": 8667582.257475711,
+        "greedy_AR_rate": 0.8542620016677055,
+        "greedy_local_AR_rate": 1.0,
+        "qaoa_top_AR_rate": 0.8613124908237758,
+        "qaoa_top_k_local_AR_rate": 1.0,
+        "random_top_k_local_AR_rate": 1.0,
+        "random_top_k_optimum_hit_rate": 1.0,
+        "qaoa_optimum_probability": 0.13260122266599056,
+        "qaoa_top_assignment": [
+          2,
+          5,
+          3
+        ],
+        "qaoa_top_k_assignment": [
+          0,
+          3,
+          5
+        ]
+      },
+      {
+        "seed": 57,
+        "feasible_assignment_count": 42,
+        "exact_sum_rate": 9870026.638625812,
+        "greedy_AR_rate": 0.7551880585151035,
+        "greedy_local_AR_rate": 0.7551880585151035,
+        "qaoa_top_AR_rate": 0.8989127428933236,
+        "qaoa_top_k_local_AR_rate": 1.0,
+        "random_top_k_local_AR_rate": 1.0,
+        "random_top_k_optimum_hit_rate": 1.0,
+        "qaoa_optimum_probability": 0.06223300766591245,
+        "qaoa_top_assignment": [
+          1,
+          3,
+          5
+        ],
+        "qaoa_top_k_assignment": [
+          0,
+          2,
+          3
+        ]
+      },
+      {
+        "seed": 58,
+        "feasible_assignment_count": 61,
+        "exact_sum_rate": 7544058.206572053,
+        "greedy_AR_rate": 0.9265731017508656,
+        "greedy_local_AR_rate": 0.9265731017508656,
+        "qaoa_top_AR_rate": 0.9502907666288749,
+        "qaoa_top_k_local_AR_rate": 1.0,
+        "random_top_k_local_AR_rate": 0.9937863458286094,
+        "random_top_k_optimum_hit_rate": 0.875,
+        "qaoa_optimum_probability": 0.0298662818634717,
+        "qaoa_top_assignment": [
+          0,
+          1,
+          5
+        ],
+        "qaoa_top_k_assignment": [
+          0,
+          2,
+          3
+        ]
+      }
+    ],
+    "skipped": [
+      {
+        "seed": 1,
+        "reason": "greedy infeasible"
+      },
+      {
+        "seed": 2,
+        "reason": "greedy infeasible"
+      },
+      {
+        "seed": 3,
+        "reason": "fewer than two feasible states"
+      },
+      {
+        "seed": 4,
+        "reason": "fewer than two feasible states"
+      },
+      {
+        "seed": 6,
+        "reason": "greedy infeasible"
+      },
+      {
+        "seed": 10,
+        "reason": "greedy infeasible"
+      },
+      {
+        "seed": 13,
+        "reason": "greedy infeasible"
+      },
+      {
+        "seed": 14,
+        "reason": "fewer than two feasible states"
+      },
+      {
+        "seed": 16,
+        "reason": "greedy infeasible"
+      },
+      {
+        "seed": 17,
+        "reason": "fewer than two feasible states"
+      },
+      {
+        "seed": 18,
+        "reason": "greedy infeasible"
+      },
+      {
+        "seed": 22,
+        "reason": "greedy infeasible"
+      },
+      {
+        "seed": 23,
+        "reason": "fewer than two feasible states"
+      },
+      {
+        "seed": 24,
+        "reason": "greedy infeasible"
+      },
+      {
+        "seed": 25,
+        "reason": "greedy infeasible"
+      },
+      {
+        "seed": 26,
+        "reason": "fewer than two feasible states"
+      },
+      {
+        "seed": 29,
+        "reason": "fewer than two feasible states"
+      },
+      {
+        "seed": 31,
+        "reason": "fewer than two feasible states"
+      },
+      {
+        "seed": 34,
+        "reason": "greedy infeasible"
+      },
+      {
+        "seed": 37,
+        "reason": "fewer than two feasible states"
+      },
+      {
+        "seed": 39,
+        "reason": "greedy infeasible"
+      },
+      {
+        "seed": 40,
+        "reason": "greedy infeasible"
+      },
+      {
+        "seed": 42,
+        "reason": "fewer than two feasible states"
+      },
+      {
+        "seed": 43,
+        "reason": "fewer than two feasible states"
+      },
+      {
+        "seed": 45,
+        "reason": "fewer than two feasible states"
+      },
+      {
+        "seed": 46,
+        "reason": "fewer than two feasible states"
+      },
+      {
+        "seed": 48,
+        "reason": "greedy infeasible"
+      },
+      {
+        "seed": 49,
+        "reason": "fewer than two feasible states"
+      },
+      {
+        "seed": 50,
+        "reason": "greedy infeasible"
+      },
+      {
+        "seed": 52,
+        "reason": "greedy infeasible"
+      },
+      {
+        "seed": 54,
+        "reason": "greedy infeasible"
+      },
+      {
+        "seed": 55,
+        "reason": "fewer than two feasible states"
+      },
+      {
+        "seed": 56,
+        "reason": "greedy infeasible"
+      },
+      {
+        "seed": 59,
+        "reason": "fewer than two feasible states"
+      },
+      {
+        "seed": 60,
+        "reason": "greedy infeasible"
+      }
+    ]
   }
 }

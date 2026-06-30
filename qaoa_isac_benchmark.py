@@ -73,6 +73,24 @@ class QAOASubspaceResult:
     shots: int
 
 
+@dataclass(frozen=True)
+class LocalSearchComparison:
+    top_k: int
+    qaoa_best: AssignmentEval
+    random_mean_ar: float
+    random_optimum_hit_rate: float
+    random_trials: int
+
+    def to_json(self, exact_rate: float) -> dict:
+        return {
+            "top_k": self.top_k,
+            "qaoa_best": self.qaoa_best.to_json(exact_rate),
+            "random_mean_AR_rate": self.random_mean_ar,
+            "random_optimum_hit_rate": self.random_optimum_hit_rate,
+            "random_trials": self.random_trials,
+        }
+
+
 def build_environment(params: SystemParams, seed: int, quiet: bool = True) -> ISACEnvironment:
     if not quiet:
         return ISACEnvironment(params, seed=seed)
@@ -212,6 +230,20 @@ def local_search(env: ISACEnvironment, start: AssignmentEval) -> AssignmentEval:
     return current
 
 
+def best_local_search_from_candidates(
+    env: ISACEnvironment,
+    candidates: Sequence[AssignmentEval],
+) -> AssignmentEval:
+    best: AssignmentEval | None = None
+    for candidate in candidates:
+        polished = local_search(env, candidate)
+        if best is None or polished.sum_rate > best.sum_rate:
+            best = polished
+    if best is None:
+        raise ValueError("At least one local-search candidate is required.")
+    return best
+
+
 def build_assignment_adjacency(states: Sequence[AssignmentEval]) -> np.ndarray:
     n_states = len(states)
     adjacency = np.zeros((n_states, n_states), dtype=float)
@@ -316,6 +348,42 @@ def summarize_random_baseline(states: Sequence[AssignmentEval]) -> dict:
     }
 
 
+def compare_qaoa_vs_random_local_search(
+    env: ISACEnvironment,
+    states: Sequence[AssignmentEval],
+    probabilities: np.ndarray,
+    exact: AssignmentEval,
+    *,
+    top_k: int,
+    random_trials: int,
+    seed: int,
+) -> LocalSearchComparison:
+    ordered = np.argsort(-probabilities)
+    qaoa_candidates = [states[int(i)] for i in ordered[: min(top_k, len(states))]]
+    qaoa_best = best_local_search_from_candidates(env, qaoa_candidates)
+
+    rng = np.random.default_rng(seed + 2026)
+    random_ars: list[float] = []
+    random_hits = 0
+    for _ in range(random_trials):
+        size = min(top_k, len(states))
+        random_indices = rng.choice(len(states), size=size, replace=False)
+        random_candidates = [states[int(i)] for i in random_indices]
+        random_best = best_local_search_from_candidates(env, random_candidates)
+        ar_rate = random_best.sum_rate / exact.sum_rate
+        random_ars.append(ar_rate)
+        if ar_rate >= 1.0 - 1e-9:
+            random_hits += 1
+
+    return LocalSearchComparison(
+        top_k=top_k,
+        qaoa_best=qaoa_best,
+        random_mean_ar=float(np.mean(random_ars)),
+        random_optimum_hit_rate=random_hits / random_trials,
+        random_trials=random_trials,
+    )
+
+
 def shots_for_success(probability: float, target: float = 0.95) -> int:
     if probability <= 0.0:
         return math.inf
@@ -352,6 +420,17 @@ def run_benchmark(args: argparse.Namespace) -> dict:
     top = feasible[qaoa_result.top_index]
     sampled_best = feasible[qaoa_result.sampled_best_index]
     random_baseline = summarize_random_baseline(feasible)
+    local_top_k = getattr(args, "local_top_k", 8)
+    random_trials = getattr(args, "random_trials", 8)
+    local_comparison = compare_qaoa_vs_random_local_search(
+        env,
+        feasible,
+        probabilities,
+        exact,
+        top_k=local_top_k,
+        random_trials=random_trials,
+        seed=args.seed,
+    )
     qaoa_success_probability = 1.0 - (1.0 - qaoa_result.optimum_probability) ** args.shots
     random_success_probability = 1.0 - (
         1.0 - random_baseline["uniform_optimum_probability"]
@@ -402,6 +481,7 @@ def run_benchmark(args: argparse.Namespace) -> dict:
             ),
             "top_probabilities": ordered_probability[: min(args.top_k, len(ordered_probability))],
         },
+        "qaoa_top_k_local_search": local_comparison.to_json(exact.sum_rate),
         "random_feasible": {
             **random_baseline,
             "mean_AR_rate": random_baseline["mean_rate"] / exact.sum_rate,
@@ -416,12 +496,150 @@ def run_benchmark(args: argparse.Namespace) -> dict:
     }
 
 
+def summarize_metric(rows: Sequence[dict], key: str) -> float:
+    if not rows:
+        return float("nan")
+    return float(np.mean([row[key] for row in rows]))
+
+
+def summarize_suite_rows(rows: Sequence[dict]) -> dict:
+    return {
+        "count": len(rows),
+        "mean_feasible_assignments": summarize_metric(rows, "feasible_assignment_count"),
+        "mean_greedy_AR_rate": summarize_metric(rows, "greedy_AR_rate"),
+        "mean_greedy_local_AR_rate": summarize_metric(rows, "greedy_local_AR_rate"),
+        "mean_qaoa_top_AR_rate": summarize_metric(rows, "qaoa_top_AR_rate"),
+        "mean_qaoa_top_k_local_AR_rate": summarize_metric(
+            rows, "qaoa_top_k_local_AR_rate"
+        ),
+        "mean_random_top_k_local_AR_rate": summarize_metric(
+            rows, "random_top_k_local_AR_rate"
+        ),
+        "mean_qaoa_optimum_probability": summarize_metric(
+            rows, "qaoa_optimum_probability"
+        ),
+        "qaoa_top_k_optimum_hits": int(
+            sum(row["qaoa_top_k_local_AR_rate"] >= 1.0 - 1e-9 for row in rows)
+        ),
+        "qaoa_top_k_beats_greedy": int(
+            sum(row["qaoa_top_k_local_AR_rate"] > row["greedy_AR_rate"] + 1e-9 for row in rows)
+        ),
+        "qaoa_top_k_beats_random_top_k": int(
+            sum(
+                row["qaoa_top_k_local_AR_rate"]
+                > row["random_top_k_local_AR_rate"] + 1e-9
+                for row in rows
+            )
+        ),
+    }
+
+
+def parse_seed_range(seed_range: str) -> list[int]:
+    if ":" in seed_range:
+        start_text, end_text = seed_range.split(":", 1)
+        start = int(start_text)
+        end = int(end_text)
+        return list(range(start, end + 1))
+    return [int(part.strip()) for part in seed_range.split(",") if part.strip()]
+
+
+def run_suite(args: argparse.Namespace) -> dict:
+    seeds = parse_seed_range(getattr(args, "suite_seed_range", "1:60"))
+    top_k = getattr(args, "suite_top_k", 8)
+    random_trials = getattr(args, "suite_random_trials", 8)
+    stress_gap = getattr(args, "suite_stress_gap", 0.10)
+
+    rows: list[dict] = []
+    skipped: list[dict] = []
+    for seed in seeds:
+        params = SystemParams(
+            U=getattr(args, "suite_uavs", 3),
+            G=getattr(args, "suite_grid_points", 6),
+            S=getattr(args, "suite_survivors", 5),
+            Nt=getattr(args, "suite_antennas", 4),
+            Gamma_min=getattr(args, "suite_gamma_min", 0.5),
+        )
+        env = build_environment(params, seed=seed, quiet=True)
+        feasible = enumerate_assignments(env, require_c3=True)
+        if len(feasible) < 2:
+            skipped.append({"seed": seed, "reason": "fewer than two feasible states"})
+            continue
+
+        exact_index, exact = max(enumerate(feasible), key=lambda item: item[1].sum_rate)
+        greedy = greedy_assignment(env)
+        if not greedy.feasible:
+            skipped.append({"seed": seed, "reason": "greedy infeasible"})
+            continue
+        greedy_polished = local_search(env, greedy)
+        qaoa_result, probabilities = run_valid_subspace_qaoa(
+            feasible,
+            exact_index,
+            reps=1,
+            grid_steps=getattr(args, "suite_grid_steps", 31),
+            shots=getattr(args, "suite_shots", 1024),
+            seed=seed,
+        )
+        qaoa_top = feasible[qaoa_result.top_index]
+        local_comparison = compare_qaoa_vs_random_local_search(
+            env,
+            feasible,
+            probabilities,
+            exact,
+            top_k=top_k,
+            random_trials=random_trials,
+            seed=seed,
+        )
+        rows.append(
+            {
+                "seed": seed,
+                "feasible_assignment_count": len(feasible),
+                "exact_sum_rate": exact.sum_rate,
+                "greedy_AR_rate": greedy.sum_rate / exact.sum_rate,
+                "greedy_local_AR_rate": greedy_polished.sum_rate / exact.sum_rate,
+                "qaoa_top_AR_rate": qaoa_top.sum_rate / exact.sum_rate,
+                "qaoa_top_k_local_AR_rate": (
+                    local_comparison.qaoa_best.sum_rate / exact.sum_rate
+                ),
+                "random_top_k_local_AR_rate": local_comparison.random_mean_ar,
+                "random_top_k_optimum_hit_rate": (
+                    local_comparison.random_optimum_hit_rate
+                ),
+                "qaoa_optimum_probability": qaoa_result.optimum_probability,
+                "qaoa_top_assignment": list(qaoa_top.assignment),
+                "qaoa_top_k_assignment": list(local_comparison.qaoa_best.assignment),
+            }
+        )
+
+    stress_rows = [row for row in rows if 1.0 - row["greedy_AR_rate"] >= stress_gap]
+    return {
+        "scenario": {
+            "U": getattr(args, "suite_uavs", 3),
+            "G": getattr(args, "suite_grid_points", 6),
+            "S": getattr(args, "suite_survivors", 5),
+            "Nt": getattr(args, "suite_antennas", 4),
+            "n_qubits_full_binary": (
+                getattr(args, "suite_uavs", 3) * getattr(args, "suite_grid_points", 6)
+            ),
+            "Gamma_min": getattr(args, "suite_gamma_min", 0.5),
+            "seed_range": getattr(args, "suite_seed_range", "1:60"),
+            "top_k": top_k,
+            "random_trials": random_trials,
+            "stress_gap": stress_gap,
+        },
+        "all": summarize_suite_rows(rows),
+        "stress": summarize_suite_rows(stress_rows),
+        "rows": rows,
+        "skipped": skipped,
+    }
+
+
 def print_summary(results: dict) -> None:
     scenario = results["scenario"]
     exact = results["exact"]
     greedy = results["greedy"]
     polished = results["greedy_local_search"]
     qaoa = results["valid_subspace_qaoa"]
+    qaoa_local = results["qaoa_top_k_local_search"]
     random = results["random_feasible"]
 
     print("Hard QAOA-ISAC benchmark")
@@ -459,6 +677,12 @@ def print_summary(results: dict) -> None:
         qaoa["top_assignment"]["AR_rate"],
         qaoa["top_assignment"]["assignment"],
     ))
+    print("QAOA top-{0} + local    {1:10.3f}   {2:7.3f}   {3}".format(
+        qaoa_local["top_k"],
+        qaoa_local["qaoa_best"]["sum_rate"] / 1e6,
+        qaoa_local["qaoa_best"]["AR_rate"],
+        qaoa_local["qaoa_best"]["assignment"],
+    ))
     print()
     print(
         "QAOA optimum probability: {0:.3f} "
@@ -470,25 +694,74 @@ def print_summary(results: dict) -> None:
         )
     )
     print(
+        "QAOA top-{0}+local AR={1:.3f}; random top-{0}+local mean AR={2:.3f}".format(
+            qaoa_local["top_k"],
+            qaoa_local["qaoa_best"]["AR_rate"],
+            qaoa_local["random_mean_AR_rate"],
+        )
+    )
+    print(
         "Greedy gap: {0:.1%}; QAOA top gap: {1:.1%}".format(
             1.0 - greedy["AR_rate"],
             1.0 - qaoa["top_assignment"]["AR_rate"],
         )
     )
 
+    suite = results.get("suite")
+    if suite:
+        scenario = suite["scenario"]
+        all_rows = suite["all"]
+        stress = suite["stress"]
+        print()
+        print(
+            "Suite: U={U}, G={G}, S={S}, seeds={seed_range}, top_k={top_k}".format(
+                **scenario
+            )
+        )
+        print(
+            "Evaluated seeds ({count}): greedy AR={mean_greedy_AR_rate:.3f}, "
+            "greedy+local AR={mean_greedy_local_AR_rate:.3f}, "
+            "QAOA top-k+local AR={mean_qaoa_top_k_local_AR_rate:.3f}, "
+            "random top-k+local AR={mean_random_top_k_local_AR_rate:.3f}".format(
+                **all_rows
+            )
+        )
+        print(
+            "Stress seeds ({count}): greedy AR={mean_greedy_AR_rate:.3f}, "
+            "greedy+local AR={mean_greedy_local_AR_rate:.3f}, "
+            "QAOA top-k+local AR={mean_qaoa_top_k_local_AR_rate:.3f}, "
+            "random top-k+local AR={mean_random_top_k_local_AR_rate:.3f}".format(
+                **stress
+            )
+        )
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--uavs", type=int, default=3)
+    parser.add_argument("--uavs", type=int, default=4)
     parser.add_argument("--grid-points", type=int, default=6)
-    parser.add_argument("--survivors", type=int, default=5)
+    parser.add_argument("--survivors", type=int, default=6)
     parser.add_argument("--antennas", type=int, default=4)
     parser.add_argument("--gamma-min", type=float, default=0.5)
-    parser.add_argument("--seed", type=int, default=35)
+    parser.add_argument("--seed", type=int, default=67)
     parser.add_argument("--reps", type=int, default=1)
     parser.add_argument("--grid-steps", type=int, default=61)
     parser.add_argument("--shots", type=int, default=1024)
     parser.add_argument("--top-k", type=int, default=8)
+    parser.add_argument("--local-top-k", type=int, default=8)
+    parser.add_argument("--random-trials", type=int, default=8)
+    parser.add_argument("--include-suite", action="store_true")
+    parser.add_argument("--suite-seed-range", default="1:60")
+    parser.add_argument("--suite-uavs", type=int, default=3)
+    parser.add_argument("--suite-grid-points", type=int, default=6)
+    parser.add_argument("--suite-survivors", type=int, default=5)
+    parser.add_argument("--suite-antennas", type=int, default=4)
+    parser.add_argument("--suite-gamma-min", type=float, default=0.5)
+    parser.add_argument("--suite-grid-steps", type=int, default=31)
+    parser.add_argument("--suite-shots", type=int, default=1024)
+    parser.add_argument("--suite-top-k", type=int, default=8)
+    parser.add_argument("--suite-random-trials", type=int, default=8)
+    parser.add_argument("--suite-stress-gap", type=float, default=0.10)
     parser.add_argument("--output", default="qaoa_isac_benchmark_results.json")
     parser.add_argument("--verbose", action="store_true")
     return parser.parse_args()
@@ -497,6 +770,8 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     results = run_benchmark(args)
+    if args.include_suite:
+        results["suite"] = run_suite(args)
     output_path = Path(args.output)
     output_path.write_text(json.dumps(results, indent=2), encoding="utf-8")
     print_summary(results)
