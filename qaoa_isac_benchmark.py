@@ -18,10 +18,11 @@ import contextlib
 import json
 import math
 import os
+from collections import Counter
 from dataclasses import asdict, dataclass
 from itertools import permutations
 from pathlib import Path
-from typing import Sequence
+from typing import Any, Sequence
 
 import numpy as np
 
@@ -81,7 +82,14 @@ class QAOASubspaceResult:
 @dataclass(frozen=True)
 class LocalSearchComparison:
     top_k: int
+    qaoa_raw_best: AssignmentEval
     qaoa_best: AssignmentEval
+    qaoa_local_gain_ar: float
+    random_raw_mean_ar: float
+    random_raw_std_ar: float
+    random_raw_worst_ar: float
+    random_raw_best_ar: float
+    random_local_gain_mean_ar: float
     random_mean_ar: float
     random_std_ar: float
     random_worst_ar: float
@@ -93,7 +101,14 @@ class LocalSearchComparison:
     def to_json(self, exact_rate: float) -> dict:
         return {
             "top_k": self.top_k,
+            "qaoa_raw_best": self.qaoa_raw_best.to_json(exact_rate),
             "qaoa_best": self.qaoa_best.to_json(exact_rate),
+            "qaoa_local_gain_AR_rate": self.qaoa_local_gain_ar,
+            "random_raw_mean_AR_rate": self.random_raw_mean_ar,
+            "random_raw_std_AR_rate": self.random_raw_std_ar,
+            "random_raw_worst_AR_rate": self.random_raw_worst_ar,
+            "random_raw_best_AR_rate": self.random_raw_best_ar,
+            "random_local_gain_mean_AR_rate": self.random_local_gain_mean_ar,
             "random_mean_AR_rate": self.random_mean_ar,
             "random_std_AR_rate": self.random_std_ar,
             "random_worst_AR_rate": self.random_worst_ar,
@@ -189,6 +204,133 @@ def evaluate_assignment(env: ISACEnvironment, assignment: Sequence[int]) -> Assi
         c2=c2,
         c3=c3,
         c4=c4,
+    )
+
+
+def bitstring_to_variable_vector(bitstring: str, n_qubits: int) -> np.ndarray:
+    # Qiskit count strings are displayed with the highest classical bit first.
+    return np.array([int(bit) for bit in bitstring[::-1][:n_qubits]], dtype=int)
+
+
+def assignment_vector(row: AssignmentEval, env: ISACEnvironment) -> np.ndarray:
+    x = np.zeros(env.n_qubits, dtype=int)
+    for u, g in enumerate(row.assignment):
+        x[u * env.params.G + g] = 1
+    return x
+
+
+def project_bitstring_to_feasible_assignment(
+    bitstring: str,
+    feasible_rows: Sequence[AssignmentEval],
+    env: ISACEnvironment,
+) -> AssignmentEval:
+    bits = bitstring_to_variable_vector(bitstring, env.n_qubits)
+    best_row = None
+    best_key = None
+    for row in feasible_rows:
+        candidate = assignment_vector(row, env)
+        hamming = int(np.sum(bits != candidate))
+        key = (-hamming, row.sum_rate)
+        if best_key is None or key > best_key:
+            best_key = key
+            best_row = row
+    if best_row is None:
+        raise ValueError("At least one feasible row is required.")
+    return best_row
+
+
+def summarize_hardware_counts(
+    counts: dict[str, int],
+    feasible_rows: Sequence[AssignmentEval],
+    env: ISACEnvironment,
+    exact_rate: float,
+) -> list[dict]:
+    total_shots = sum(counts.values())
+    if total_shots <= 0:
+        raise ValueError("Hardware counts must contain at least one shot.")
+
+    repaired: Counter[tuple[int, ...]] = Counter()
+    for bitstring, count in counts.items():
+        row = project_bitstring_to_feasible_assignment(bitstring, feasible_rows, env)
+        repaired[row.assignment] += int(count)
+
+    summary = []
+    lookup = {row.assignment: row for row in feasible_rows}
+    for assignment, count in repaired.most_common(10):
+        row = lookup[assignment]
+        summary.append(
+            {
+                "assignment": list(assignment),
+                "count": int(count),
+                "probability": count / total_shots,
+                "sum_rate_mbps": row.sum_rate / 1e6,
+                "AR_rate": row.sum_rate / exact_rate,
+            }
+        )
+    return summary
+
+
+def _databin_field_names(data: Any) -> list[str]:
+    names: list[str] = []
+    if hasattr(data, "keys"):
+        names.extend(str(name) for name in data.keys())
+    if hasattr(data, "items"):
+        names.extend(str(name) for name, _ in data.items())
+    if hasattr(data, "_FIELDS"):
+        names.extend(str(name) for name in data._FIELDS)
+    if hasattr(data, "__dict__"):
+        names.extend(name for name in data.__dict__ if not name.startswith("_"))
+
+    seen: set[str] = set()
+    unique_names: list[str] = []
+    for name in names:
+        if name not in seen:
+            seen.add(name)
+            unique_names.append(name)
+    return unique_names
+
+
+def extract_sampler_counts(
+    sampler_result: Any,
+    classical_register: str | None = None,
+    *,
+    return_register: bool = False,
+) -> dict[str, int] | tuple[dict[str, int], str]:
+    """Return counts from a Qiskit Runtime SamplerV2 result.
+
+    SamplerV2 stores one BitArray per classical register in a DataBin. The
+    register name depends on how the circuit was measured: `measure_all()`
+    commonly creates `meas`, while `QuantumCircuit(n, n)` creates `c`.
+    """
+    pub_result = sampler_result[0] if hasattr(sampler_result, "__getitem__") else sampler_result
+    data = getattr(pub_result, "data", pub_result)
+
+    candidates: list[tuple[str, Any]] = []
+    if classical_register is not None:
+        candidates.append((classical_register, getattr(data, classical_register, None)))
+    if hasattr(data, "get_counts"):
+        candidates.append(("<direct>", data))
+    for name in _databin_field_names(data):
+        candidates.append((name, getattr(data, name, None)))
+    for fallback_name in ("meas", "c"):
+        candidates.append((fallback_name, getattr(data, fallback_name, None)))
+
+    seen: set[str] = set()
+    for name, value in candidates:
+        if name in seen or value is None:
+            continue
+        seen.add(name)
+        get_counts = getattr(value, "get_counts", None)
+        if callable(get_counts):
+            counts = {str(key): int(count) for key, count in get_counts().items()}
+            if return_register:
+                return counts, name
+            return counts
+
+    available = ", ".join(_databin_field_names(data)) or "<none>"
+    raise AttributeError(
+        "No classical register with get_counts() was found in the Sampler result. "
+        f"Available DataBin fields: {available}"
     )
 
 
@@ -449,6 +591,24 @@ def parse_int_list(value: str | Sequence[int]) -> list[int]:
     return result
 
 
+def parse_float_list(value: str | Sequence[float]) -> list[float]:
+    if isinstance(value, str):
+        raw_values = [part.strip() for part in value.split(",")]
+        parsed = [float(part) for part in raw_values if part]
+    else:
+        parsed = [float(part) for part in value]
+
+    seen: set[float] = set()
+    result: list[float] = []
+    for item in parsed:
+        if item < 0.0 or item > 1.0:
+            raise ValueError("Probability-noise levels must be in [0, 1].")
+        if item not in seen:
+            seen.add(item)
+            result.append(item)
+    return result
+
+
 def random_top_k_exact_hit_probability(
     states: Sequence[AssignmentEval],
     exact_rate: float,
@@ -480,30 +640,47 @@ def compare_qaoa_vs_random_local_search(
 
     ordered = np.argsort(-probabilities)
     qaoa_candidates = [states[int(i)] for i in ordered[: min(top_k, len(states))]]
+    qaoa_raw_best = max(qaoa_candidates, key=lambda row: row.sum_rate)
+    qaoa_raw_ar = qaoa_raw_best.sum_rate / exact.sum_rate
     qaoa_best = best_local_search_from_candidates(env, qaoa_candidates)
     qaoa_ar = qaoa_best.sum_rate / exact.sum_rate
 
     rng = np.random.default_rng(seed + 2026)
+    random_raw_ars: list[float] = []
     random_ars: list[float] = []
+    random_local_gains: list[float] = []
     random_hits = 0
     random_losses = 0
     for _ in range(random_trials):
         size = min(top_k, len(states))
         random_indices = rng.choice(len(states), size=size, replace=False)
         random_candidates = [states[int(i)] for i in random_indices]
+        random_raw_best = max(random_candidates, key=lambda row: row.sum_rate)
         random_best = best_local_search_from_candidates(env, random_candidates)
+        raw_ar_rate = random_raw_best.sum_rate / exact.sum_rate
         ar_rate = random_best.sum_rate / exact.sum_rate
+        random_raw_ars.append(raw_ar_rate)
         random_ars.append(ar_rate)
+        random_local_gains.append(ar_rate - raw_ar_rate)
         if ar_rate >= 1.0 - 1e-9:
             random_hits += 1
         if qaoa_ar > ar_rate + 1e-9:
             random_losses += 1
 
+    random_raw_array = np.array(random_raw_ars, dtype=float)
     random_array = np.array(random_ars, dtype=float)
+    random_gain_array = np.array(random_local_gains, dtype=float)
 
     return LocalSearchComparison(
         top_k=top_k,
+        qaoa_raw_best=qaoa_raw_best,
         qaoa_best=qaoa_best,
+        qaoa_local_gain_ar=qaoa_ar - qaoa_raw_ar,
+        random_raw_mean_ar=float(random_raw_array.mean()),
+        random_raw_std_ar=float(random_raw_array.std(ddof=0)),
+        random_raw_worst_ar=float(random_raw_array.min()),
+        random_raw_best_ar=float(random_raw_array.max()),
+        random_local_gain_mean_ar=float(random_gain_array.mean()),
         random_mean_ar=float(random_array.mean()),
         random_std_ar=float(random_array.std(ddof=0)),
         random_worst_ar=float(random_array.min()),
@@ -543,10 +720,17 @@ def build_top_k_sweep(
             {
                 "top_k": requested_top_k,
                 "effective_top_k": effective_top_k,
+                "qaoa_raw_AR_rate": comparison.qaoa_raw_best.sum_rate / exact.sum_rate,
                 "qaoa_AR_rate": qaoa_ar,
+                "qaoa_local_gain_AR_rate": comparison.qaoa_local_gain_ar,
                 "qaoa_optimum_hit": qaoa_ar >= 1.0 - 1e-9,
                 "qaoa_assignment": list(comparison.qaoa_best.assignment),
                 "qaoa_probability_mass": float(probabilities[qaoa_top_indices].sum()),
+                "random_raw_mean_AR_rate": comparison.random_raw_mean_ar,
+                "random_raw_std_AR_rate": comparison.random_raw_std_ar,
+                "random_raw_worst_AR_rate": comparison.random_raw_worst_ar,
+                "random_raw_best_AR_rate": comparison.random_raw_best_ar,
+                "random_local_gain_mean_AR_rate": comparison.random_local_gain_mean_ar,
                 "random_mean_AR_rate": comparison.random_mean_ar,
                 "random_std_AR_rate": comparison.random_std_ar,
                 "random_worst_AR_rate": comparison.random_worst_ar,
@@ -561,6 +745,142 @@ def build_top_k_sweep(
             }
         )
     return rows
+
+
+def build_probability_noise_robustness(
+    env: ISACEnvironment,
+    states: Sequence[AssignmentEval],
+    probabilities: np.ndarray,
+    exact: AssignmentEval,
+    *,
+    top_k: int,
+    shots: int,
+    noise_levels: Sequence[float],
+) -> dict:
+    uniform = np.full(len(states), 1.0 / len(states), dtype=float)
+    optimum_indices = [
+        index
+        for index, row in enumerate(states)
+        if row.sum_rate >= exact.sum_rate - 1e-9
+    ]
+    rows: list[dict] = []
+
+    for noise_level in parse_float_list(noise_levels):
+        noisy_probabilities = (1.0 - noise_level) * probabilities + noise_level * uniform
+        ordered = np.argsort(-noisy_probabilities)
+        top_index = int(ordered[0])
+        effective_top_k = min(top_k, len(states))
+        top_k_indices = ordered[:effective_top_k]
+        top_k_candidates = [states[int(i)] for i in top_k_indices]
+        top_k_best = best_local_search_from_candidates(env, top_k_candidates)
+        optimum_probability = float(noisy_probabilities[optimum_indices].sum())
+
+        rows.append(
+            {
+                "uniform_blend": float(noise_level),
+                "top_k": top_k,
+                "effective_top_k": effective_top_k,
+                "top_assignment": states[top_index].to_json(exact.sum_rate),
+                "top_probability": float(noisy_probabilities[top_index]),
+                "top_k_probability_mass": float(noisy_probabilities[top_k_indices].sum()),
+                "top_k_local_assignment": top_k_best.to_json(exact.sum_rate),
+                "top_k_local_AR_rate": top_k_best.sum_rate / exact.sum_rate,
+                "top_k_optimum_hit": top_k_best.sum_rate >= exact.sum_rate - 1e-9,
+                "optimum_probability": optimum_probability,
+                "enrichment_vs_uniform": optimum_probability
+                / random_top_k_exact_hit_probability(states, exact.sum_rate, 1),
+                "shot_success_probability": 1.0
+                - (1.0 - optimum_probability) ** shots,
+                "shots_for_95pct_success": shots_for_success(optimum_probability),
+            }
+        )
+
+    return {
+        "model": "Convex blend of QAOA feasible-subspace probabilities toward uniform feasible sampling.",
+        "interpretation": (
+            "This is a simulator-side stress test of probability concentration, "
+            "not a hardware noise calibration."
+        ),
+        "rows": rows,
+    }
+
+
+def build_hardware_evidence_status() -> dict:
+    return {
+        "status": "measured",
+        "headline_source": "valid_subspace_qaoa_simulator",
+        "hardware_path": "full_binary_qubo_bridge",
+        "backend_name": "ibm_quebec",
+        "job_id": "d91i01vccmks73d56i80",
+        "count_register": "c",
+        "qubit_count": 24,
+        "pre_isa_depth": 139,
+        "pre_isa_ops": {
+            "cx": 552,
+            "rz": 300,
+            "h": 24,
+            "rx": 24,
+            "measure": 24,
+        },
+        "transpiled_depth": 1233,
+        "transpiled_ops": {
+            "sx": 2865,
+            "rz": 1804,
+            "cz": 1572,
+            "measure": 24,
+            "x": 1,
+        },
+        "cx_count": 0,
+        "cz_count": 1572,
+        "two_qubit_gate_count": 1572,
+        "shots": 1024,
+        "distinct_bitstrings": 1022,
+        "raw_feasible_count": 1,
+        "feasible_sample_rate": 1.0 / 1024.0,
+        "best_feasible_bitstring": "001000000001100000000010",
+        "best_feasible_assignment": [1, 5, 0, 3],
+        "best_hardware_AR_rate": 0.8294928238727217,
+        "best_projected_source_bitstring": "111001101011010010010100",
+        "best_projected_assignment": [2, 4, 1, 3],
+        "best_projected_AR_rate": 1.0,
+        "best_projected_count": 16,
+        "most_common_projected": [
+            {
+                "assignment": [4, 2, 3, 5],
+                "count": 54,
+                "AR_rate": 0.9074040406246278,
+            },
+            {
+                "assignment": [0, 3, 1, 2],
+                "count": 49,
+                "AR_rate": 0.9114109085907078,
+            },
+            {
+                "assignment": [0, 2, 3, 4],
+                "count": 48,
+                "AR_rate": 0.8869284583160361,
+            },
+            {
+                "assignment": [2, 4, 3, 5],
+                "count": 37,
+                "AR_rate": 0.9921412175910209,
+            },
+            {
+                "assignment": [5, 4, 3, 1],
+                "count": 30,
+                "AR_rate": 0.8874307484159896,
+            },
+        ],
+        "same_scenario_greedy_AR_rate": 0.8111447260708325,
+        "same_scenario_random_AR_rate": 0.7630645828543176,
+        "same_scenario_qaoa_top_k_local_AR_rate": 1.0,
+        "interpretation": (
+            "Hardware executed the full-binary QUBO bridge on IBM Quantum. "
+            "Raw feasible sampling was very low; feasible projection recovered "
+            "the exact optimum, so this is hardware feasibility evidence rather "
+            "than hardware quantum-advantage evidence."
+        ),
+    }
 
 
 def build_neighbor_indices(states: Sequence[AssignmentEval]) -> list[np.ndarray]:
@@ -748,6 +1068,15 @@ def run_benchmark(args: argparse.Namespace) -> dict:
         random_trials=sweep_random_trials,
         seed=args.seed,
     )
+    probability_noise_robustness = build_probability_noise_robustness(
+        env,
+        feasible,
+        probabilities,
+        exact,
+        top_k=local_top_k,
+        shots=args.shots,
+        noise_levels=getattr(args, "noise_levels", "0,0.1,0.25,0.5,0.75,1.0"),
+    )
     qaoa_success_probability = 1.0 - (1.0 - qaoa_result.optimum_probability) ** args.shots
     random_success_probability = 1.0 - (
         1.0 - random_baseline["uniform_optimum_probability"]
@@ -803,6 +1132,7 @@ def run_benchmark(args: argparse.Namespace) -> dict:
         "qaoa_top_k_local_search": local_comparison.to_json(exact.sum_rate),
         "simulated_annealing": simulated_annealing.to_json(exact.sum_rate),
         "top_k_sweep": top_k_sweep,
+        "probability_noise_robustness": probability_noise_robustness,
         "random_feasible": {
             **random_baseline,
             "mean_AR_rate": random_baseline["mean_rate"] / exact.sum_rate,
@@ -814,6 +1144,7 @@ def run_benchmark(args: argparse.Namespace) -> dict:
                 1.0 / random_baseline["uniform_optimum_probability"]
             ),
         },
+        "hardware_evidence": build_hardware_evidence_status(),
     }
 
 
@@ -830,8 +1161,20 @@ def summarize_suite_rows(rows: Sequence[dict]) -> dict:
         "mean_greedy_AR_rate": summarize_metric(rows, "greedy_AR_rate"),
         "mean_greedy_local_AR_rate": summarize_metric(rows, "greedy_local_AR_rate"),
         "mean_qaoa_top_AR_rate": summarize_metric(rows, "qaoa_top_AR_rate"),
+        "mean_qaoa_raw_top_k_AR_rate": summarize_metric(
+            rows, "qaoa_raw_top_k_AR_rate"
+        ),
         "mean_qaoa_top_k_local_AR_rate": summarize_metric(
             rows, "qaoa_top_k_local_AR_rate"
+        ),
+        "mean_qaoa_local_gain_AR_rate": summarize_metric(
+            rows, "qaoa_local_gain_AR_rate"
+        ),
+        "mean_random_raw_top_k_AR_rate": summarize_metric(
+            rows, "random_raw_top_k_AR_rate"
+        ),
+        "mean_random_local_gain_AR_rate": summarize_metric(
+            rows, "random_local_gain_AR_rate"
         ),
         "mean_random_top_k_local_AR_rate": summarize_metric(
             rows, "random_top_k_local_AR_rate"
@@ -889,6 +1232,12 @@ def summarize_suite_top_k_sweep(rows: Sequence[dict]) -> list[dict]:
                 "mean_qaoa_AR_rate": float(
                     np.mean([row["qaoa_AR_rate"] for row in sweep_rows])
                 ),
+                "mean_qaoa_raw_AR_rate": float(
+                    np.mean([row["qaoa_raw_AR_rate"] for row in sweep_rows])
+                ),
+                "mean_qaoa_local_gain_AR_rate": float(
+                    np.mean([row["qaoa_local_gain_AR_rate"] for row in sweep_rows])
+                ),
                 "qaoa_optimum_hits": int(
                     sum(row["qaoa_optimum_hit"] for row in sweep_rows)
                 ),
@@ -897,6 +1246,14 @@ def summarize_suite_top_k_sweep(rows: Sequence[dict]) -> list[dict]:
                 ),
                 "mean_random_AR_rate": float(
                     np.mean([row["random_mean_AR_rate"] for row in sweep_rows])
+                ),
+                "mean_random_raw_AR_rate": float(
+                    np.mean([row["random_raw_mean_AR_rate"] for row in sweep_rows])
+                ),
+                "mean_random_local_gain_AR_rate": float(
+                    np.mean(
+                        [row["random_local_gain_mean_AR_rate"] for row in sweep_rows]
+                    )
                 ),
                 "mean_random_optimum_hit_rate": float(
                     np.mean([row["random_optimum_hit_rate"] for row in sweep_rows])
@@ -1017,8 +1374,16 @@ def run_suite(args: argparse.Namespace) -> dict:
                 "greedy_AR_rate": greedy.sum_rate / exact.sum_rate,
                 "greedy_local_AR_rate": greedy_polished.sum_rate / exact.sum_rate,
                 "qaoa_top_AR_rate": qaoa_top.sum_rate / exact.sum_rate,
+                "qaoa_raw_top_k_AR_rate": (
+                    local_comparison.qaoa_raw_best.sum_rate / exact.sum_rate
+                ),
                 "qaoa_top_k_local_AR_rate": (
                     local_comparison.qaoa_best.sum_rate / exact.sum_rate
+                ),
+                "qaoa_local_gain_AR_rate": local_comparison.qaoa_local_gain_ar,
+                "random_raw_top_k_AR_rate": local_comparison.random_raw_mean_ar,
+                "random_local_gain_AR_rate": (
+                    local_comparison.random_local_gain_mean_ar
                 ),
                 "random_top_k_local_AR_rate": local_comparison.random_mean_ar,
                 "random_top_k_optimum_hit_rate": (
@@ -1066,6 +1431,33 @@ def run_suite(args: argparse.Namespace) -> dict:
         "rows": rows,
         "skipped": skipped,
     }
+
+
+def run_scale_challenge(args: argparse.Namespace) -> dict:
+    scale_args = argparse.Namespace(
+        uavs=args.scale_uavs,
+        grid_points=args.scale_grid_points,
+        survivors=args.scale_survivors,
+        antennas=args.scale_antennas,
+        gamma_min=args.scale_gamma_min,
+        seed=args.scale_seed,
+        reps=1,
+        grid_steps=args.scale_grid_steps,
+        shots=args.scale_shots,
+        top_k=args.scale_top_k,
+        local_top_k=args.scale_top_k,
+        random_trials=args.scale_random_trials,
+        sweep_top_k=args.scale_sweep_top_k,
+        sweep_random_trials=args.scale_sweep_random_trials,
+        sa_restarts=args.scale_sa_restarts,
+        sa_steps=args.scale_sa_steps,
+        sa_trials=args.scale_sa_trials,
+        sa_start_temperature=args.scale_sa_start_temperature,
+        sa_end_temperature=args.scale_sa_end_temperature,
+        noise_levels=args.noise_levels,
+        verbose=args.verbose,
+    )
+    return run_benchmark(scale_args)
 
 
 def generate_visualizations(results: dict, output_dir: str | Path = "figures") -> list[str]:
@@ -1357,6 +1749,17 @@ def print_summary(results: dict) -> None:
             qaoa_local["random_mean_AR_rate"],
         )
     )
+    if "qaoa_raw_best" in qaoa_local:
+        print(
+            "Local attribution: QAOA raw top-{0} AR={1:.3f}, local gain={2:.3f}; "
+            "random raw mean AR={3:.3f}, random local gain={4:.3f}".format(
+                qaoa_local["top_k"],
+                qaoa_local["qaoa_raw_best"]["AR_rate"],
+                qaoa_local["qaoa_local_gain_AR_rate"],
+                qaoa_local["random_raw_mean_AR_rate"],
+                qaoa_local["random_local_gain_mean_AR_rate"],
+            )
+        )
     print(
         "Simulated annealing mean AR={0:.3f}; optimum-hit rate={1:.3f}".format(
             simulated_annealing["mean_AR_rate"],
@@ -1385,6 +1788,19 @@ def print_summary(results: dict) -> None:
                 )
             )
 
+    robustness = results.get("probability_noise_robustness", {}).get("rows", [])
+    if robustness:
+        print()
+        print("Probability-noise robustness")
+        print("blend   optimum p   QAOA top-k+local AR   shots@95%")
+        for row in robustness:
+            print(
+                "{uniform_blend:5.2f}   {optimum_probability:9.4f}   "
+                "{top_k_local_AR_rate:19.3f}   {shots_for_95pct_success}".format(
+                    **row
+                )
+            )
+
     suite = results.get("suite")
     if suite:
         scenario = suite["scenario"]
@@ -1399,7 +1815,9 @@ def print_summary(results: dict) -> None:
         print(
             "Evaluated seeds ({count}): greedy AR={mean_greedy_AR_rate:.3f}, "
             "greedy+local AR={mean_greedy_local_AR_rate:.3f}, "
+            "QAOA raw top-k AR={mean_qaoa_raw_top_k_AR_rate:.3f}, "
             "QAOA top-k+local AR={mean_qaoa_top_k_local_AR_rate:.3f}, "
+            "QAOA local gain={mean_qaoa_local_gain_AR_rate:.3f}, "
             "random top-k+local AR={mean_random_top_k_local_AR_rate:.3f}, "
             "SA AR={mean_simulated_annealing_AR_rate:.3f}".format(
                 **all_rows
@@ -1408,7 +1826,9 @@ def print_summary(results: dict) -> None:
         print(
             "Stress seeds ({count}): greedy AR={mean_greedy_AR_rate:.3f}, "
             "greedy+local AR={mean_greedy_local_AR_rate:.3f}, "
+            "QAOA raw top-k AR={mean_qaoa_raw_top_k_AR_rate:.3f}, "
             "QAOA top-k+local AR={mean_qaoa_top_k_local_AR_rate:.3f}, "
+            "QAOA local gain={mean_qaoa_local_gain_AR_rate:.3f}, "
             "random top-k+local AR={mean_random_top_k_local_AR_rate:.3f}, "
             "SA AR={mean_simulated_annealing_AR_rate:.3f}".format(
                 **stress
@@ -1433,6 +1853,26 @@ def print_summary(results: dict) -> None:
                     "{mean_qaoa_gain_over_random:.3f}".format(**row)
                 )
 
+    scale = results.get("scale_challenge")
+    if scale:
+        scenario = scale["scenario"]
+        scale_qaoa_local = scale["qaoa_top_k_local_search"]
+        print()
+        print(
+            "Scale challenge: U={U}, G={G}, S={S}, feasible={feasible_assignment_count}, "
+            "full-binary qubits={n_qubits_full_binary}".format(**scenario)
+        )
+        print(
+            "Scale challenge AR: greedy={0:.3f}, QAOA raw top-{1}={2:.3f}, "
+            "QAOA top-{1}+local={3:.3f}, SA mean={4:.3f}".format(
+                scale["greedy"]["AR_rate"],
+                scale_qaoa_local["top_k"],
+                scale_qaoa_local["qaoa_raw_best"]["AR_rate"],
+                scale_qaoa_local["qaoa_best"]["AR_rate"],
+                scale["simulated_annealing"]["mean_AR_rate"],
+            )
+        )
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -1450,6 +1890,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--random-trials", type=int, default=8)
     parser.add_argument("--sweep-top-k", default="1,2,4,8,16")
     parser.add_argument("--sweep-random-trials", type=int, default=None)
+    parser.add_argument("--noise-levels", default="0,0.1,0.25,0.5,0.75,1.0")
     parser.add_argument("--sa-restarts", type=int, default=8)
     parser.add_argument("--sa-steps", type=int, default=24)
     parser.add_argument("--sa-trials", type=int, default=32)
@@ -1474,6 +1915,24 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--suite-sa-start-temperature", type=float, default=0.25)
     parser.add_argument("--suite-sa-end-temperature", type=float, default=0.01)
     parser.add_argument("--suite-stress-gap", type=float, default=0.10)
+    parser.add_argument("--include-scale-challenge", action="store_true")
+    parser.add_argument("--scale-uavs", type=int, default=4)
+    parser.add_argument("--scale-grid-points", type=int, default=7)
+    parser.add_argument("--scale-survivors", type=int, default=7)
+    parser.add_argument("--scale-antennas", type=int, default=4)
+    parser.add_argument("--scale-gamma-min", type=float, default=0.5)
+    parser.add_argument("--scale-seed", type=int, default=8)
+    parser.add_argument("--scale-grid-steps", type=int, default=31)
+    parser.add_argument("--scale-shots", type=int, default=1024)
+    parser.add_argument("--scale-top-k", type=int, default=8)
+    parser.add_argument("--scale-random-trials", type=int, default=32)
+    parser.add_argument("--scale-sweep-top-k", default="1,2,4,8,16")
+    parser.add_argument("--scale-sweep-random-trials", type=int, default=32)
+    parser.add_argument("--scale-sa-restarts", type=int, default=8)
+    parser.add_argument("--scale-sa-steps", type=int, default=24)
+    parser.add_argument("--scale-sa-trials", type=int, default=16)
+    parser.add_argument("--scale-sa-start-temperature", type=float, default=0.25)
+    parser.add_argument("--scale-sa-end-temperature", type=float, default=0.01)
     parser.add_argument("--output", default="qaoa_isac_benchmark_results.json")
     parser.add_argument("--make-figures", action="store_true")
     parser.add_argument("--figure-dir", default="figures")
@@ -1486,6 +1945,8 @@ def main() -> None:
     results = run_benchmark(args)
     if args.include_suite:
         results["suite"] = run_suite(args)
+    if args.include_scale_challenge:
+        results["scale_challenge"] = run_scale_challenge(args)
     if args.make_figures:
         results["figures"] = generate_visualizations(results, args.figure_dir)
     output_path = Path(args.output)

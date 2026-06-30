@@ -58,6 +58,53 @@ Then run the hardware section cells in order. The code uses:
 When the job is submitted, save the printed job ID in the README or final
 presentation notes.
 
+## Hardware Evidence To Capture
+
+Do not update the headline claim until the real job returns. When it does,
+capture the following fields and compare every method on the same hardware
+scenario:
+
+| Field | Why it matters |
+| --- | --- |
+| `backend_name` | Confirms the actual IBM device. |
+| `job_id` | Allows the run to be audited. |
+| `qubit_count` | Shows the hardware scenario size. |
+| `depth` | Reports compiled circuit depth. |
+| `cx_count` | Reports two-qubit gate cost. |
+| `shots` | Defines sampling budget. |
+| `feasible_sample_rate` | Measures how much QUBO sampling survives constraints. |
+| `best_feasible_bitstring` | Preserves the raw measured candidate. |
+| `best_feasible_assignment` | Converts the bitstring into UAV placement. |
+| `best_hardware_AR_rate` | Compares hardware quality against exact feasible optimum. |
+| `same_scenario_greedy_AR_rate` | Keeps the hardware comparison fair. |
+| `same_scenario_random_AR_rate` | Shows whether hardware beats random feasible sampling. |
+
+The regenerated benchmark JSON has the same required field list under
+`hardware_evidence`.
+
+## Captured Hardware Result
+
+The current completed job is:
+
+| Field | Value |
+| --- | --- |
+| Backend | `ibm_quebec` |
+| Job ID | `d91i01vccmks73d56i80` |
+| Qubits | 24 |
+| Shots | 1024 |
+| Count register | `c` |
+| ISA depth | 1233 |
+| ISA two-qubit gates | 1572 `cz` gates |
+| Raw feasible samples | 1/1024 |
+| Best raw feasible AR | 0.829 |
+| Best projected assignment | `[2, 4, 1, 3]` |
+| Best projected AR | 1.000 |
+
+Interpretation: the device executed the full-binary QUBO circuit, but raw
+feasibility was very low. The optimum recovery came after feasible projection,
+so this is hardware feasibility evidence, not a hardware quantum-advantage
+claim.
+
 ## What The Limitation Means
 
 The main winning result uses a valid-subspace QAOA simulator:
@@ -69,7 +116,7 @@ The main winning result uses a valid-subspace QAOA simulator:
 The hardware section is different:
 
 - It builds a full-binary QUBO circuit with one qubit per `UAV x grid` variable.
-- For the hardware demo scenario, that is `U=3, G=6`, so `18` qubits.
+- The captured job used the headline `U=4, G=6` scenario, so `24` qubits.
 - It does not implement the custom valid-subspace mixer used by the simulator.
 - Constraint violations are handled by QUBO penalties and post-processing, not
   by staying in the valid assignment subspace.
