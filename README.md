@@ -58,6 +58,20 @@ This is the main technical claim: QAOA-guided candidate selection reaches the
 optimum with fewer polished candidates on the stress cases where greedy is at
 least 10% below exact optimum.
 
+## Visual Evidence
+
+The benchmark generates presentation-ready PNGs in `figures/`.
+
+![QAOA convergence](figures/qaoa_convergence.png)
+
+![QAOA angle landscape](figures/qaoa_angle_landscape.png)
+
+![Candidate efficiency](figures/qaoa_candidate_efficiency.png)
+
+![Probability distribution](figures/qaoa_probability_distribution.png)
+
+![Deployment map](figures/qaoa_deployment_map.png)
+
 ## Judging Criteria Mapping
 
 | Criterion | Evidence in this repo |
@@ -77,7 +91,7 @@ presentation. Those names are not inferred in this README.
 Use the qiskit environment that was used to generate the checked-in results:
 
 ```powershell
-& 'C:\Users\harry\.conda\envs\qiskit\python.exe' -X utf8 .\qaoa_isac_benchmark.py --include-suite --grid-steps 81 --random-trials 64 --sweep-random-trials 64 --suite-random-trials 32 --suite-sweep-random-trials 32
+& 'C:\Users\harry\.conda\envs\qiskit\python.exe' -X utf8 .\qaoa_isac_benchmark.py --include-suite --grid-steps 81 --random-trials 64 --sweep-random-trials 64 --suite-random-trials 32 --suite-sweep-random-trials 32 --make-figures
 ```
 
 Quick syntax check:
@@ -95,6 +109,7 @@ Quick syntax check:
 | `qaoa_isac_benchmark.py` | Reproducible benchmark harness |
 | `qaoa_isac_benchmark.ipynb` | Judge-facing notebook view |
 | `qaoa_isac_benchmark_results.json` | Regenerated benchmark and sweep metrics |
+| `figures/` | Generated convergence, landscape, probability, efficiency, and deployment plots |
 | `qaoa_isac_figures.pdf` | Existing figure artifact |
 
 ## Hardware Status

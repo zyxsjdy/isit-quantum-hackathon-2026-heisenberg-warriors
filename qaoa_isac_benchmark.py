@@ -62,6 +62,7 @@ class AssignmentEval:
 class QAOASubspaceResult:
     reps: int
     grid_steps: int
+    evaluations: int
     gamma: float
     beta: float
     expected_rate: float
@@ -71,6 +72,10 @@ class QAOASubspaceResult:
     sampled_best_index: int
     sampled_best_count: int
     shots: int
+    best_so_far_trace: tuple[dict, ...] = ()
+    angle_landscape: tuple[tuple[float, ...], ...] = ()
+    gamma_grid: tuple[float, ...] = ()
+    beta_grid: tuple[float, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -273,6 +278,7 @@ def run_valid_subspace_qaoa(
     grid_steps: int = 61,
     shots: int = 1024,
     seed: int = 35,
+    record_diagnostics: bool = False,
 ) -> tuple[QAOASubspaceResult, np.ndarray]:
     if reps != 1:
         raise ValueError("This benchmark currently implements the p=1 subspace solver.")
@@ -280,6 +286,7 @@ def run_valid_subspace_qaoa(
         raise ValueError("At least two feasible states are required for QAOA.")
 
     rates = np.array([row.sum_rate for row in states], dtype=float)
+    exact_rate = float(states[exact_best_index].sum_rate)
     rate_span = float(rates.max() - rates.min())
     if rate_span <= 0:
         raise ValueError("All feasible assignments have identical rates.")
@@ -306,11 +313,22 @@ def run_valid_subspace_qaoa(
     best_beta = 0.0
     best_expected = -math.inf
     best_probabilities = np.full(len(states), 1.0 / len(states))
+    best_trace: list[dict] = []
+    angle_landscape = (
+        np.empty((grid_steps, grid_steps), dtype=float) if record_diagnostics else None
+    )
 
-    for gamma in np.linspace(0.0, 2.0 * math.pi, grid_steps):
-        for beta in np.linspace(0.0, math.pi, grid_steps):
+    gamma_values = np.linspace(0.0, 2.0 * math.pi, grid_steps)
+    beta_values = np.linspace(0.0, math.pi, grid_steps)
+    evaluations = 0
+    for gamma_index, gamma in enumerate(gamma_values):
+        for beta_index, beta in enumerate(beta_values):
+            evaluations += 1
             expected_rate, probabilities = evaluate_angles(float(gamma), float(beta))
             top_index = int(np.argmax(probabilities))
+            expected_ar = expected_rate / exact_rate
+            if angle_landscape is not None:
+                angle_landscape[gamma_index, beta_index] = expected_ar
             key = (
                 expected_rate,
                 states[top_index].sum_rate,
@@ -322,6 +340,20 @@ def run_valid_subspace_qaoa(
                 best_beta = float(beta)
                 best_expected = expected_rate
                 best_probabilities = probabilities
+                if record_diagnostics:
+                    best_trace.append(
+                        {
+                            "evaluation": evaluations,
+                            "gamma": float(gamma),
+                            "beta": float(beta),
+                            "best_expected_AR_rate": expected_ar,
+                            "top_AR_rate": states[top_index].sum_rate / exact_rate,
+                            "top_probability": float(probabilities[top_index]),
+                            "optimum_probability": float(
+                                probabilities[exact_best_index]
+                            ),
+                        }
+                    )
 
     rng = np.random.default_rng(seed)
     sample_counts = rng.multinomial(shots, best_probabilities)
@@ -332,6 +364,7 @@ def run_valid_subspace_qaoa(
     result = QAOASubspaceResult(
         reps=reps,
         grid_steps=grid_steps,
+        evaluations=evaluations,
         gamma=best_gamma,
         beta=best_beta,
         expected_rate=float(best_expected),
@@ -341,6 +374,18 @@ def run_valid_subspace_qaoa(
         sampled_best_index=sampled_best_index,
         sampled_best_count=int(sample_counts[sampled_best_index]),
         shots=shots,
+        best_so_far_trace=tuple(best_trace),
+        angle_landscape=(
+            tuple(tuple(float(value) for value in row) for row in angle_landscape)
+            if angle_landscape is not None
+            else ()
+        ),
+        gamma_grid=tuple(float(value) for value in gamma_values)
+        if record_diagnostics
+        else (),
+        beta_grid=tuple(float(value) for value in beta_values)
+        if record_diagnostics
+        else (),
     )
     return result, best_probabilities
 
@@ -520,6 +565,7 @@ def run_benchmark(args: argparse.Namespace) -> dict:
         grid_steps=args.grid_steps,
         shots=args.shots,
         seed=args.seed,
+        record_diagnostics=True,
     )
     top = feasible[qaoa_result.top_index]
     sampled_best = feasible[qaoa_result.sampled_best_index]
@@ -576,6 +622,8 @@ def run_benchmark(args: argparse.Namespace) -> dict:
             "seed": args.seed,
             "valid_no_colocation_count": len(valid_no_c3),
             "feasible_assignment_count": len(feasible),
+            "grid_points_xyz": env.p_grid.round(6).tolist(),
+            "survivors_xyz": env.q_surv.round(6).tolist(),
         },
         "exact": exact.to_json(exact.sum_rate),
         "greedy": greedy.to_json(exact.sum_rate),
@@ -832,6 +880,202 @@ def run_suite(args: argparse.Namespace) -> dict:
     }
 
 
+def generate_visualizations(results: dict, output_dir: str | Path = "figures") -> list[str]:
+    import matplotlib.pyplot as plt
+
+    output_path = Path(output_dir)
+    output_path.mkdir(parents=True, exist_ok=True)
+    saved: list[str] = []
+
+    qaoa = results["valid_subspace_qaoa"]
+    random = results["random_feasible"]
+    top_k_sweep = results.get("top_k_sweep", [])
+    suite = results.get("suite", {})
+
+    trace = qaoa.get("best_so_far_trace", [])
+    if trace:
+        fig, ax = plt.subplots(figsize=(8.5, 5.0))
+        evaluations = [row["evaluation"] for row in trace]
+        best_ar = [row["best_expected_AR_rate"] for row in trace]
+        top_ar = [row["top_AR_rate"] for row in trace]
+        best_top_ar = np.maximum.accumulate(np.array(top_ar, dtype=float))
+        ax.step(evaluations, best_ar, where="post", label="Best expected AR", color="#1f77b4")
+        ax.step(
+            evaluations,
+            best_top_ar,
+            where="post",
+            label="Best top-state AR found",
+            color="#d62728",
+        )
+        ax.axhline(1.0, color="#2ca02c", linestyle="--", linewidth=1.2, label="Exact optimum AR")
+        ax.set_xlabel("QAOA grid-search evaluations")
+        ax.set_ylabel("AR rate")
+        ax.set_title("QAOA parameter-search convergence")
+        ax.set_ylim(max(0.0, min(best_ar + top_ar) - 0.03), 1.03)
+        ax.grid(alpha=0.25)
+        ax.legend()
+        fig.tight_layout()
+        path = output_path / "qaoa_convergence.png"
+        fig.savefig(path, dpi=180)
+        plt.close(fig)
+        saved.append(str(path))
+
+    landscape = qaoa.get("angle_landscape", [])
+    gamma_grid = qaoa.get("gamma_grid", [])
+    beta_grid = qaoa.get("beta_grid", [])
+    if landscape and gamma_grid and beta_grid:
+        fig, ax = plt.subplots(figsize=(8.0, 5.2))
+        image = ax.imshow(
+            np.array(landscape, dtype=float).T,
+            origin="lower",
+            aspect="auto",
+            extent=[
+                min(gamma_grid),
+                max(gamma_grid),
+                min(beta_grid),
+                max(beta_grid),
+            ],
+            cmap="viridis",
+        )
+        ax.scatter([qaoa["gamma"]], [qaoa["beta"]], marker="*", s=140, color="white", edgecolor="black", label="Selected angles")
+        ax.set_xlabel("gamma")
+        ax.set_ylabel("beta")
+        ax.set_title("QAOA expected-AR landscape")
+        fig.colorbar(image, ax=ax, label="Expected AR rate")
+        ax.legend(loc="upper right")
+        fig.tight_layout()
+        path = output_path / "qaoa_angle_landscape.png"
+        fig.savefig(path, dpi=180)
+        plt.close(fig)
+        saved.append(str(path))
+
+    probability_rows = qaoa.get("top_probabilities", [])
+    if probability_rows:
+        fig, ax = plt.subplots(figsize=(9.0, 5.0))
+        labels = [str(row["assignment"]) for row in probability_rows]
+        probabilities = [row["probability"] for row in probability_rows]
+        colors = [
+            "#2ca02c" if row["AR_rate"] >= 1.0 - 1e-9 else "#1f77b4"
+            for row in probability_rows
+        ]
+        ax.bar(labels, probabilities, color=colors, alpha=0.9)
+        ax.axhline(
+            random["uniform_optimum_probability"],
+            color="black",
+            linestyle="--",
+            linewidth=1.2,
+            label="Uniform feasible optimum probability",
+        )
+        ax.set_xlabel("Assignment")
+        ax.set_ylabel("Probability")
+        ax.set_title("QAOA probability concentration on high-rate assignments")
+        ax.tick_params(axis="x", rotation=55)
+        ax.legend()
+        fig.tight_layout()
+        path = output_path / "qaoa_probability_distribution.png"
+        fig.savefig(path, dpi=180)
+        plt.close(fig)
+        saved.append(str(path))
+
+    if top_k_sweep or suite.get("stress_top_k_sweep"):
+        fig, axes = plt.subplots(1, 2, figsize=(13.5, 5.0))
+        if top_k_sweep:
+            k_values = [row["top_k"] for row in top_k_sweep]
+            qaoa_ar = [row["qaoa_AR_rate"] for row in top_k_sweep]
+            random_ar = [row["random_mean_AR_rate"] for row in top_k_sweep]
+            random_hit = [row["random_optimum_hit_rate"] for row in top_k_sweep]
+            axes[0].plot(k_values, qaoa_ar, marker="o", color="#17becf", label="QAOA top-K + local")
+            axes[0].plot(k_values, random_ar, marker="s", color="#9467bd", label="Random top-K + local")
+            axes[0].plot(k_values, random_hit, marker="^", color="#ff7f0e", label="Random optimum-hit rate")
+            axes[0].set_title("Headline candidate efficiency")
+            axes[0].set_xlabel("Candidate budget K")
+            axes[0].set_ylabel("AR rate / hit rate")
+            axes[0].set_ylim(0.0, 1.04)
+            axes[0].grid(alpha=0.25)
+            axes[0].legend()
+
+        stress_sweep = suite.get("stress_top_k_sweep", [])
+        if stress_sweep:
+            k_values = [row["top_k"] for row in stress_sweep]
+            qaoa_ar = [row["mean_qaoa_AR_rate"] for row in stress_sweep]
+            random_ar = [row["mean_random_AR_rate"] for row in stress_sweep]
+            qaoa_hits = [
+                row["qaoa_optimum_hits"] / row["count"] for row in stress_sweep
+            ]
+            axes[1].plot(k_values, qaoa_ar, marker="o", color="#17becf", label="QAOA mean AR")
+            axes[1].plot(k_values, random_ar, marker="s", color="#9467bd", label="Random mean AR")
+            axes[1].plot(k_values, qaoa_hits, marker="^", color="#2ca02c", label="QAOA optimum-hit rate")
+            axes[1].set_title("Stress-suite candidate efficiency")
+            axes[1].set_xlabel("Candidate budget K")
+            axes[1].set_ylabel("AR rate / hit rate")
+            axes[1].set_ylim(0.0, 1.04)
+            axes[1].grid(alpha=0.25)
+            axes[1].legend()
+
+        fig.tight_layout()
+        path = output_path / "qaoa_candidate_efficiency.png"
+        fig.savefig(path, dpi=180)
+        plt.close(fig)
+        saved.append(str(path))
+
+    scenario = results["scenario"]
+    grid_points = np.array(scenario.get("grid_points_xyz", []), dtype=float)
+    survivors = np.array(scenario.get("survivors_xyz", []), dtype=float)
+    if grid_points.size and survivors.size:
+        exact_assignment = results["exact"]["assignment"]
+        greedy_assignment = results["greedy"]["assignment"]
+        fig, ax = plt.subplots(figsize=(7.2, 6.2))
+        ax.scatter(grid_points[:, 0], grid_points[:, 1], marker="s", s=60, color="#7f7f7f", label="Candidate UAV grid")
+        ax.scatter(survivors[:, 0], survivors[:, 1], marker="*", s=120, color="#d62728", label="Survivors")
+        exact_points = grid_points[exact_assignment]
+        greedy_points = grid_points[greedy_assignment]
+        ax.scatter(greedy_points[:, 0], greedy_points[:, 1], marker="x", s=95, color="#ff7f0e", label="Greedy UAVs")
+        ax.scatter(exact_points[:, 0], exact_points[:, 1], marker="o", s=95, facecolor="none", edgecolor="#17becf", linewidth=2.2, label="QAOA/exact UAVs")
+        for index, point in enumerate(grid_points):
+            ax.text(point[0] + 4, point[1] + 4, f"g{index}", fontsize=8)
+        for index, point in enumerate(survivors):
+            ax.text(point[0] + 4, point[1] + 4, f"s{index}", fontsize=8, color="#8c0000")
+        for uav_index, grid_index in enumerate(exact_assignment):
+            point = grid_points[grid_index]
+            ax.text(
+                point[0] + 8,
+                point[1] - 10,
+                f"Q:u{uav_index}",
+                fontsize=8,
+                color="#008c99",
+            )
+        for uav_index, grid_index in enumerate(greedy_assignment):
+            point = grid_points[grid_index]
+            ax.text(
+                point[0] + 8,
+                point[1] - 22,
+                f"G:u{uav_index}",
+                fontsize=8,
+                color="#b35a00",
+            )
+        if set(exact_assignment) == set(greedy_assignment):
+            ax.text(
+                0.02,
+                0.02,
+                "Same occupied grid set; UAV identity differs.",
+                transform=ax.transAxes,
+                fontsize=9,
+                bbox={"facecolor": "white", "alpha": 0.75, "edgecolor": "#cccccc"},
+            )
+        ax.set_xlabel("x position (m)")
+        ax.set_ylabel("y position (m)")
+        ax.set_title("UAV deployment map: greedy vs QAOA/exact")
+        ax.grid(alpha=0.25)
+        ax.legend(loc="best")
+        fig.tight_layout()
+        path = output_path / "qaoa_deployment_map.png"
+        fig.savefig(path, dpi=180)
+        plt.close(fig)
+        saved.append(str(path))
+
+    return saved
+
+
 def print_summary(results: dict) -> None:
     scenario = results["scenario"]
     exact = results["exact"]
@@ -999,6 +1243,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--suite-sweep-random-trials", type=int, default=None)
     parser.add_argument("--suite-stress-gap", type=float, default=0.10)
     parser.add_argument("--output", default="qaoa_isac_benchmark_results.json")
+    parser.add_argument("--make-figures", action="store_true")
+    parser.add_argument("--figure-dir", default="figures")
     parser.add_argument("--verbose", action="store_true")
     return parser.parse_args()
 
@@ -1008,6 +1254,8 @@ def main() -> None:
     results = run_benchmark(args)
     if args.include_suite:
         results["suite"] = run_suite(args)
+    if args.make_figures:
+        results["figures"] = generate_visualizations(results, args.figure_dir)
     output_path = Path(args.output)
     output_path.write_text(json.dumps(results, indent=2), encoding="utf-8")
     print_summary(results)
