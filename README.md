@@ -5,92 +5,102 @@ as a constrained quantum optimization problem. The deployment must assign UAVs
 to candidate 3-D grid points while respecting one-hot assignment, no
 co-location, survivor SINR, and collision-avoidance constraints.
 
-The strongest result is a valid-subspace QAOA-guided candidate generator plus
-classical local search. The valid-subspace solver keeps the search inside
-feasible UAV assignments, ranks candidates by QAOA probability, and then uses
-local search to polish only a small top-K candidate set.
+The strongest result is a candidate-aware valid-subspace QAOA candidate
+generator plus classical local search. The valid-subspace solver keeps the
+search inside feasible UAV assignments, trains angles in simulation, ranks
+candidates by QAOA probability, and then uses local search to polish only a
+small top-K candidate set.
 
-The current benchmark also separates the raw QAOA ranking from the local-search
-polishing step, adds a simulator-side probability-noise robustness probe, and
-includes a larger `U=4, G=7, S=7` scale challenge.
+The current evidence separates raw QAOA ranking from local-search polishing,
+adds a multi-seed competition suite, includes a larger `U=4, G=7, S=7` scale
+challenge, and keeps IBM hardware execution evidence separate from the
+simulation headline.
 
 ## Result Snapshot
 
-The current benchmark evidence is regenerated in
-`qaoa_isac_benchmark_results.json`.
+The current competition evidence is exported from
+`qaoa_isac_training_notebook.ipynb` into `qaoa_isac_training_results.json`.
+`qaoa_isac_submission_evidence.json` contains the distilled final-submission
+numbers.
 
 | Scenario | Method | AR rate | Notes |
 | --- | --- | ---: | --- |
 | Headline `U=4, G=6, S=6` | Exact enumeration | 1.000 | Feasible optimum reference |
 | Headline `U=4, G=6, S=6` | Greedy | 0.811 | Feasible but 18.9% below optimum |
-| Headline `U=4, G=6, S=6` | Valid-subspace QAOA top state | 1.000 | Matches exact optimum |
-| Headline `U=4, G=6, S=6` | QAOA raw top-8 | 1.000 | No local-search gain needed |
-| Headline `U=4, G=6, S=6` | QAOA top-8 + local search | 1.000 | Matches exact optimum |
-| Headline `U=4, G=6, S=6` | Simulated annealing | 0.993 mean | 0.719 optimum-hit rate across trials |
+| Headline `U=4, G=6, S=6` | Expected-QAOA raw top-8 | 1.000 | Optimum already in raw QAOA candidates |
+| Headline `U=4, G=6, S=6` | Candidate-aware QAOA top-8 + local | 1.000 | Matches exact optimum |
+| Headline `U=4, G=6, S=6` | Simulated annealing | 0.993 mean | Strong classical heuristic baseline |
+| Scale challenge `U=4, G=7, S=7` | Greedy + local | 0.835 | 724 feasible assignments, 28 full-binary variables |
+| Scale challenge `U=4, G=7, S=7` | Expected-QAOA raw top-8 | 0.927 | Larger exact-valid-subspace case |
+| Scale challenge `U=4, G=7, S=7` | Candidate-aware QAOA raw top-8 | 1.000 | Optimum appears before local polishing |
+| Scale challenge `U=4, G=7, S=7` | Candidate-aware QAOA top-8 + local | 1.000 | Matches exact optimum |
+| Scale challenge `U=4, G=7, S=7` | Simulated annealing | 0.968 mean | Strong but below QAOA + local |
+| Multi-seed suite `U=3, G=6, S=5` | Greedy + local | 0.912 mean | 25 feasible evaluated cases from seeds `1:60` |
+| Multi-seed suite `U=3, G=6, S=5` | Expected-QAOA raw top-8 | 0.994 mean | Top-K candidate quality before local search |
+| Multi-seed suite `U=3, G=6, S=5` | Candidate-aware QAOA raw top-8 | 1.000 mean | Ties/beats expected-QAOA raw top-8 on 25/25 cases |
+| Multi-seed suite `U=3, G=6, S=5` | Candidate-aware QAOA top-8 + local | 1.000 mean | 25/25 optimum hits |
+| Multi-seed suite `U=3, G=6, S=5` | Random top-8 + local | 0.990 mean | Candidate-aware beats random mean on 14/25 cases |
+| Multi-seed suite `U=3, G=6, S=5` | Simulated annealing | 0.986 mean | Strong classical heuristic baseline |
+| Stress seeds | Candidate-aware QAOA top-8 + local | 1.000 mean | 12/12 optimum hits where greedy is at least 10% below exact |
+| Stress seeds | Random top-8 + local | 0.990 mean | Candidate-aware beats random mean on 8/12 stress cases |
+| Stress seeds | Simulated annealing | 0.986 mean | Below candidate-aware QAOA + local |
 | IBM `ibm_quebec` `U=4, G=6, S=6` | Raw feasible hardware sample | 0.829 best | 1/1024 raw samples were feasible |
 | IBM `ibm_quebec` `U=4, G=6, S=6` | Projected hardware candidate | 1.000 best | 16/1024 projected optimum count; below random-bitstring projection baseline |
-| Next hardware candidate `U=3, G=6, S=5` | QAOA top state | 1.000 | 18 qubits, 22 feasible assignments |
-| Next hardware candidate `U=3, G=6, S=5` | Full-binary circuit | - | Depth 103, 306 CX gates before ISA transpilation |
-| Next hardware candidate `U=3, G=6, S=5` | Full-binary angle probe | 0.109 projected optimum p | QUBO-energy grid improves from 0.097 reference projected optimum p |
-| Multi-seed suite `U=3, G=6, S=5` | QAOA raw top-8 | 0.994 mean | 25 evaluated seeds |
-| Multi-seed suite `U=3, G=6, S=5` | QAOA top-8 + local search | 0.999 mean | 23/25 optimum hits |
-| Multi-seed suite `U=3, G=6, S=5` | Simulated annealing | 0.986 mean | 4/25 optimum hits |
-| Stress seeds | QAOA top-4 + local search | 1.000 mean | 12/12 optimum hits |
-| Stress seeds | Simulated annealing | 0.990 mean | 4/12 optimum hits |
-| Scale challenge `U=4, G=7, S=7` | Greedy | 0.819 | 724 feasible assignments, 28 full-binary variables |
-| Scale challenge `U=4, G=7, S=7` | QAOA raw top-8 | 0.927 | Larger exact-valid-subspace case |
-| Scale challenge `U=4, G=7, S=7` | QAOA top-8 + local search | 1.000 | Matches exact optimum |
-| Scale challenge `U=4, G=7, S=7` | Simulated annealing | 0.967 mean | Strong but below QAOA + local |
+| IBM `ibm_quebec` `U=3, G=6, S=5` | Projected hardware candidate | 1.000 best | 18-qubit job `d91ttqmu9n7c73ane4jg`; 203/1024 projected optimum count |
+| IBM `ibm_quebec` `U=3, G=6, S=5` | Hardware/random projection ratio | 1.019 | Slightly above random projection baseline, with 0/1024 raw feasible samples |
 
-QAOA assigns 6.25x more probability to the headline optimum than uniform
-feasible sampling. At a 95% target success probability, the headline optimum
-requires 157 QAOA samples versus 985 uniform feasible samples.
+On the scale challenge, the candidate-aware objective raises the raw top-8 AR
+from 0.927 to 1.000 and increases optimum probability from 0.117% to 0.405%.
+Across the multi-seed suite, candidate-aware QAOA places the optimum in the
+top-8 candidate set for every feasible evaluated case.
 
 ## Candidate-Efficiency Evidence
 
 The judging-relevant comparison is not just "QAOA can find a good answer"; it
 is whether QAOA helps under the same candidate budget. The top-K sweep compares
-QAOA-ranked candidates against random top-K multi-start local search. A
-simulated annealing baseline is also included as a stronger classical heuristic.
+candidate-aware QAOA-ranked candidates against random top-K multi-start local
+search. A simulated annealing baseline is also included as a stronger classical
+heuristic.
 
-Headline benchmark:
+Multi-seed suite:
 
-| K | QAOA AR | Random top-K + local AR | QAOA gain | Random optimum hit rate |
+| K | Candidate-aware QAOA AR | Random top-K + local AR | QAOA gain | QAOA optimum hits |
 | ---: | ---: | ---: | ---: | ---: |
-| 1 | 1.000 | 0.914 | 0.086 | 0.141 |
-| 2 | 1.000 | 0.949 | 0.051 | 0.312 |
-| 4 | 1.000 | 0.974 | 0.026 | 0.422 |
-| 8 | 1.000 | 0.986 | 0.014 | 0.547 |
-| 16 | 1.000 | 0.999 | 0.001 | 0.828 |
+| 1 | 0.927 | 0.882 | 0.045 | 11/25 |
+| 2 | 0.969 | 0.926 | 0.043 | 14/25 |
+| 4 | 0.992 | 0.970 | 0.023 | 22/25 |
+| 8 | 1.000 | 0.991 | 0.009 | 25/25 |
+| 16 | 1.000 | 0.999 | 0.001 | 25/25 |
 
 Stress suite:
 
-| K | QAOA mean AR | Random mean AR | QAOA optimum hits |
-| ---: | ---: | ---: | ---: |
-| 1 | 0.934 | 0.874 | 4/12 |
-| 2 | 0.964 | 0.920 | 6/12 |
-| 4 | 1.000 | 0.965 | 12/12 |
-| 8 | 1.000 | 0.992 | 12/12 |
-| 16 | 1.000 | 0.999 | 12/12 |
+| K | Candidate-aware QAOA AR | Random top-K + local AR | QAOA gain | QAOA optimum hits |
+| ---: | ---: | ---: | ---: | ---: |
+| 1 | 0.910 | 0.866 | 0.044 | 4/12 |
+| 2 | 0.964 | 0.922 | 0.042 | 6/12 |
+| 4 | 0.985 | 0.967 | 0.018 | 10/12 |
+| 8 | 1.000 | 0.991 | 0.009 | 12/12 |
+| 16 | 1.000 | 1.000 | 0.000 | 12/12 |
 
-This is the main technical claim: QAOA-guided candidate selection reaches the
-optimum with fewer polished candidates on the stress cases where greedy is at
-least 10% below exact optimum.
+This is the main technical claim: candidate-aware QAOA-guided candidate
+selection reaches the optimum with a small polished candidate set, including
+12/12 stress cases where greedy is at least 10% below exact optimum.
 
 ### Local-Search Attribution
 
-The benchmark now records how much of the result comes from QAOA probability
+The benchmark records how much of the result comes from QAOA probability
 ranking before local search.
 
-| Scenario | QAOA raw top-K AR | QAOA local gain | Random raw top-K mean AR | Random local gain | Random top-K + local AR |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| Headline top-8 | 1.000 | 0.000 | 0.873 | 0.119 | 0.993 |
-| Multi-seed suite top-8 | 0.994 mean | 0.006 mean | 0.926 mean | 0.065 mean | 0.990 mean |
-| Stress suite top-8 | 0.994 mean | 0.006 mean | 0.913 mean | 0.078 mean | 0.990 mean |
-| Scale challenge top-8 | 0.927 | 0.073 | 0.825 | 0.137 | 0.962 |
+| Scenario | Expected-QAOA raw top-K AR | Candidate-aware raw top-K AR | Candidate-aware local gain | Random top-K + local AR |
+| --- | ---: | ---: | ---: | ---: |
+| Headline top-8 | 1.000 | 1.000 | 0.000 | 0.986 |
+| Scale challenge top-8 | 0.927 | 1.000 | 0.000 | 0.959 |
+| Multi-seed suite top-8 | 0.994 mean | 1.000 mean | 0.000 mean | 0.990 mean |
+| Stress suite top-8 | 0.994 mean | 1.000 mean | 0.000 mean | 0.990 mean |
 
 This reduces the local-search ambiguity: local search helps both QAOA and
-random candidates, but QAOA starts from a stronger top-K candidate set.
+random candidates, but candidate-aware QAOA already places the optimum inside
+the raw top-8 set on the evaluated suite.
 
 ### Probability-Noise Robustness Probe
 
@@ -116,18 +126,24 @@ expected.
 
 | Limitation | Current status |
 | --- | --- |
-| No measured hardware result yet | Resolved. IBM job `d91i01vccmks73d56i80` on `ibm_quebec` completed with 1024 shots. Raw feasible sampling was 1/1024; feasible projection recovered the exact optimum. |
+| No measured hardware result yet | Resolved. Two IBM `ibm_quebec` jobs completed: the 24-qubit headline bridge and the smaller 18-qubit bridge. Both are hardware-execution evidence, not hardware-advantage evidence. |
 | Hardware path differs from headline valid-subspace solver | Still true. The hardware path remains a full-binary QUBO bridge and should not be claimed as the custom valid-subspace mixer. |
-| Hardware projection may look too strong | Quantified. The IBM projected optimum count was 16/1024, below the 73.7/1024 mean from a shot-matched random full-binary projection baseline. |
+| Hardware projection may look too strong | Quantified. The 24-qubit job produced 16/1024 projected optimum count versus 73.7/1024 random projection baseline; the 18-qubit job produced 203/1024 versus 199.2/1024 random projection baseline. |
 | Small scale | Reduced, not eliminated. The benchmark now includes a `U=4, G=7, S=7` scale challenge with 724 feasible assignments and 28 full-binary variables. |
-| Local search may dominate | Reduced. The JSON and README now report raw QAOA top-K quality and local-search gain separately. |
-| Simulated annealing is close | Kept explicit. SA remains a strong baseline, especially on stress cases, but trails QAOA + local in the recorded mean AR and optimum-hit metrics. |
-| Noise robustness missing | Reduced with a probability-blend robustness probe and a real hardware sample. The hardware result shows noise is severe for raw feasibility, so projection/post-processing must be presented honestly. |
+| Local search may dominate | Reduced. The training notebook and README report raw top-K quality separately; candidate-aware QAOA reaches raw top-8 AR 1.000 on the scale case and multi-seed suite. |
+| Simulated annealing is close | Kept explicit. SA remains a strong baseline, but trails candidate-aware QAOA + local in the recorded mean AR and optimum-hit metrics. |
+| Noise robustness missing | Reduced with a probability-blend robustness probe and real hardware samples. The hardware results show raw feasibility remains poor, so projection/post-processing must be presented honestly. |
 | `QAOA_ISAC_UAV.ipynb` correctness red flags | Quarantined as reference-only and ignored by git; it is not used as benchmark evidence. |
 
 ## Visual Evidence
 
-The benchmark generates presentation-ready PNGs in `figures/`.
+The clearest current figures are in `qaoa_isac_training_notebook.ipynb`:
+
+- Cell 11: standalone QAOA training convergence.
+- Cell 15: system geometry, angle landscape, and candidate efficiency.
+- Cell 17: multi-seed competition evidence.
+
+The benchmark harness also generates presentation-ready PNGs in `figures/`.
 
 ![QAOA convergence](figures/qaoa_convergence.png)
 
@@ -144,9 +160,9 @@ The benchmark generates presentation-ready PNGs in `figures/`.
 | Criterion | Evidence in this repo |
 | --- | --- |
 | Innovation and originality | Constrained QAOA-guided UAV deployment for ISAC with SINR and collision constraints. |
-| Technical depth | Exact feasible reference, greedy baseline, QAOA probability distribution, top-K sample-efficiency sweep, local-search polishing, and multi-seed stress suite. |
-| Feasibility | Reproducible Python benchmark, saved JSON results, notebook view, and guarded IBM Quantum Runtime hardware section. |
-| Presentation | `qaoa_isac_benchmark.ipynb` presents the benchmark flow and `README.md` summarizes the win condition. |
+| Technical depth | Exact feasible reference, greedy baseline, expected-QAOA and candidate-aware QAOA objectives, convergence traces, top-K sample-efficiency sweep, local-search attribution, simulated annealing baseline, and multi-seed stress suite. |
+| Feasibility | Simulation-only training notebook, saved JSON evidence, reproducible benchmark harness, and guarded IBM Quantum Runtime hardware section. |
+| Presentation | `qaoa_isac_training_notebook.ipynb` presents the training, convergence, multi-seed evidence, and export flow; `qaoa_isac_submission_evidence.json` gives the distilled final claims. |
 | Teamwork | Add final named member contributions before submission once the team roster is confirmed. |
 
 For the teamwork score, the final submission should name who owned the ISAC
@@ -155,7 +171,15 @@ presentation. Those names are not inferred in this README.
 
 ## Reproduce
 
-Use the qiskit environment that was used to generate the checked-in results:
+Primary notebook workflow:
+
+1. Open `qaoa_isac_training_notebook.ipynb`.
+2. Restart the `qiskit` kernel.
+3. Run all cells top to bottom.
+4. Check Cell 17 for the multi-seed competition evidence.
+5. Run Cell 21 to export `qaoa_isac_training_results.json`.
+
+Optional harness regeneration:
 
 ```powershell
 & 'C:\Users\harry\.conda\envs\qiskit\python.exe' -X utf8 .\qaoa_isac_benchmark.py --include-suite --include-scale-challenge --include-hardware-demo-candidate --grid-steps 81 --random-trials 64 --sweep-random-trials 64 --sa-trials 32 --suite-random-trials 32 --suite-sweep-random-trials 32 --suite-sa-trials 16 --make-figures
@@ -173,6 +197,10 @@ Quick syntax check:
 | --- | --- |
 | `qaoa_isac_env.py` | Physical channel model, constraints, and QUBO construction |
 | `qaoa_isac_notebook.ipynb` | Original end-to-end notebook, preserved |
+| `qaoa_isac_training_notebook.ipynb` | Primary simulation-only QAOA training and multi-seed evidence notebook |
+| `qaoa_isac_training_results.json` | Exported results from the training notebook |
+| `qaoa_isac_submission_evidence.json` | Distilled final-submission evidence and safe claims |
+| `docs/final-technical-presentation-brief.md` | Slide-ready technical explanation, speaker notes, and hardware-run checklist |
 | `qaoa_isac_benchmark.py` | Reproducible benchmark harness |
 | `qaoa_isac_benchmark.ipynb` | Judge-facing notebook view |
 | `qaoa_isac_benchmark_results.json` | Regenerated benchmark and sweep metrics |
@@ -181,36 +209,21 @@ Quick syntax check:
 
 ## Hardware Status
 
-The notebook includes a guarded IBM Quantum Runtime section with
-`SUBMIT_TO_HARDWARE = False` to avoid accidental resubmission. It can retrieve
-the completed job `d91i01vccmks73d56i80` from `ibm_quebec`.
+The notebook hardware path is guarded with `SUBMIT_TO_HARDWARE = False` to
+avoid accidental resubmission. The hardware circuit is a full-binary QUBO
+bridge, not the custom valid-subspace mixer used by the simulation headline.
 
-The hardware circuit is a full-binary QUBO bridge with 24 qubits, not the
-custom valid-subspace mixer used by the headline simulator. The completed job
-used 1024 shots. After ISA transpilation the circuit depth was 1233 with 1572
-CZ gates.
+Completed IBM evidence:
 
-Raw hardware feasibility was low: only 1 of 1024 measured bitstrings was
-already feasible, with AR 0.829. Feasible projection/post-processing recovered
-the exact optimum assignment `[2, 4, 1, 3]` with AR 1.000 from the measured
-samples, but the projected optimum appeared 16 times versus 73.7 times on
-average for a shot-matched random full-binary bitstring projection baseline
-over 256 deterministic trials. Present this as real-hardware execution
-evidence, not hardware quantum-advantage evidence.
+| Scenario | Backend | Job ID | Raw feasible samples | Projected optimum count | Random projection baseline | Interpretation |
+| --- | --- | --- | ---: | ---: | ---: | --- |
+| `U=4, G=6, S=6`, 24 qubits | `ibm_quebec` | `d91i01vccmks73d56i80` | 1/1024 | 16/1024 | 73.7/1024 | Executed, but below random projection baseline |
+| `U=3, G=6, S=5`, 18 qubits | `ibm_quebec` | `d91ttqmu9n7c73ane4jg` | 0/1024 | 203/1024 | 199.2/1024 | Smaller execution improved projection slightly over random |
 
-The next hardware-improvement target is a smaller `U=3, G=6, S=5`, seed `35`
-case recorded in `hardware_demo_candidate`. It uses 18 full-binary qubits and
-the pre-ISA circuit has depth 103 with 306 CX gates, down from the 24-qubit
-headline hardware bridge with depth 139 and 552 CX gates before ISA
-transpilation. On the valid-subspace simulator this candidate has greedy AR
-0.785, QAOA top-state AR 1.000, and optimum probability 0.358.
+The 18-qubit run used ISA depth 882 with 780 CZ gates. Projection recovered the
+optimum assignment `[1, 0, 5]` with AR 1.000, but raw feasible sampling remained
+0/1024. Present both IBM jobs as real-hardware executability evidence, not
+hardware quantum-advantage evidence.
 
-A statevector probe of the hardware-executable full-binary circuit now checks
-angles on the 18-qubit candidate before another IBM submission. Reusing the
-valid-subspace angles gives projected optimum probability 0.097; a 15x15
-QUBO-energy grid improves that to 0.109, with raw feasible probability still
-only 0.0007. This supports trying a smaller hardware job, but the hardware
-claim remains separate from the valid-subspace simulator headline.
-
-See `docs/ibm-hardware-run.md` for the exact install, credential, and notebook
-cells to change when submitting a hardware job.
+See `docs/ibm-hardware-run.md` for hardware-job details and the guarded
+notebook switches.

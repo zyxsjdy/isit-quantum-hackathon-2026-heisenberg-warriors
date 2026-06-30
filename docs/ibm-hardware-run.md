@@ -6,8 +6,9 @@ are finalized.
 
 ## Install Runtime Support
 
-The current `qiskit` conda environment does not have `qiskit-ibm-runtime`
-installed. Install it in the same environment used by the notebook:
+If the current `qiskit` conda environment does not have
+`qiskit-ibm-runtime` installed, install it in the same environment used by the
+notebook:
 
 ```powershell
 & 'C:\Users\harry\.conda\envs\qiskit\python.exe' -m pip install qiskit-ibm-runtime
@@ -57,6 +58,43 @@ Then run the hardware section cells in order. The code uses:
 
 When the job is submitted, save the printed job ID in the README or final
 presentation notes.
+
+## Recommended Next Hardware Run
+
+The safest next hardware action is one more 18-qubit full-binary run, but only
+after a transpilation check.
+
+1. Set:
+
+```python
+SUBMIT_TO_HARDWARE = False
+CHECK_HARDWARE_TRANSPILATION = True
+HARDWARE_SHOTS = 1024
+HARDWARE_JOB_ID = ""
+```
+
+2. Run the hardware cells through the ISA transpilation cell.
+3. Submit only if the selected backend is not worse than the completed
+   18-qubit reference run:
+
+```text
+previous depth: 882
+previous two-qubit gates: 780 CZ
+```
+
+4. If acceptable, change only:
+
+```python
+SUBMIT_TO_HARDWARE = True
+```
+
+5. Run the submit cell once and save the new job ID.
+6. After the job is `DONE`, set `SUBMIT_TO_HARDWARE = False`, paste the new job
+   ID into `HARDWARE_JOB_ID`, and run the result extraction cell.
+
+If the transpiled depth or two-qubit count is much worse than the reference
+run, do not submit. Wait for a better backend selection or keep the current
+hardware evidence.
 
 ## Hardware Evidence To Capture
 
@@ -110,14 +148,16 @@ and happened less often than the shot-matched random full-binary bitstring
 projection baseline, so this is hardware feasibility evidence, not a hardware
 quantum-advantage claim.
 
-## Next Smaller Hardware Target
+## Completed Smaller Hardware Run
 
-The first hardware-improvement target is a smaller full-binary QUBO bridge:
+The smaller full-binary QUBO bridge has also been run on IBM hardware:
 
 | Field | Value |
 | --- | --- |
 | Scenario | `U=3, G=6, S=5` |
 | Seed | `35` |
+| Backend | `ibm_quebec` |
+| Job ID | `d91ttqmu9n7c73ane4jg` |
 | Full-binary qubits | 18 |
 | Feasible assignments | 22 |
 | Greedy AR | 0.785 |
@@ -130,19 +170,27 @@ The first hardware-improvement target is a smaller full-binary QUBO bridge:
 | Reference full-binary projected optimum probability | 0.097 |
 | QUBO-energy optimized projected optimum probability | 0.109 |
 | QUBO-energy optimized raw feasible probability | 0.0007 |
+| ISA depth | 882 |
+| ISA two-qubit gates | 780 `cz` gates |
+| Shots | 1024 |
+| Raw feasible samples | 0/1024 |
+| Best projected assignment | `[1, 0, 5]` |
+| Best projected AR | 1.000 |
+| Best projected optimum count | 203/1024 |
+| Random-bitstring projection baseline | 199.2/1024 mean projected optimum count |
+| Hardware/random projected optimum ratio | 1.019 |
 
-This is not measured hardware evidence yet. It is the next candidate to submit
-because it reduces the previous 24-qubit bridge from depth 139 and 552 CX gates
-before ISA transpilation to depth 103 and 306 CX gates. Before submitting, run
-the notebook hardware cells with this scenario and check the selected backend's
-ISA depth and two-qubit gate count.
+This measured job reduces the previous 24-qubit bridge to 18 qubits and
+projects to the optimum slightly above the shot-matched random full-binary
+projection baseline. Raw feasible sampling remains 0/1024, so the result is
+improved hardware execution evidence, not hardware quantum advantage.
 
 The full-binary angle probe optimizes the hardware-executable QUBO circuit by
 expected QUBO energy, not by looking up the exact optimum assignment. It is a
 pre-hardware simulator check only: projection improves the chance of recovering
 the optimum, but raw feasible probability remains very low.
 
-Regenerate the candidate evidence with:
+Regenerate the candidate evidence with the benchmark harness if needed:
 
 ```powershell
 & 'C:\Users\harry\.conda\envs\qiskit\python.exe' -X utf8 .\qaoa_isac_benchmark.py --include-hardware-demo-candidate
