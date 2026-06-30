@@ -1813,6 +1813,30 @@ def summarize_suite_rows(rows: Sequence[dict]) -> dict:
         "mean_qaoa_optimum_probability": summarize_metric(
             rows, "qaoa_optimum_probability"
         ),
+        "mean_candidate_aware_top_AR_rate": summarize_metric(
+            rows, "candidate_aware_top_AR_rate"
+        ),
+        "mean_candidate_aware_raw_top_k_AR_rate": summarize_metric(
+            rows, "candidate_aware_raw_top_k_AR_rate"
+        ),
+        "mean_candidate_aware_top_k_local_AR_rate": summarize_metric(
+            rows, "candidate_aware_top_k_local_AR_rate"
+        ),
+        "mean_candidate_aware_local_gain_AR_rate": summarize_metric(
+            rows, "candidate_aware_local_gain_AR_rate"
+        ),
+        "mean_candidate_aware_optimum_probability": summarize_metric(
+            rows, "candidate_aware_optimum_probability"
+        ),
+        "mean_candidate_aware_gain_over_expected_qaoa": summarize_metric(
+            rows, "candidate_aware_gain_over_expected_qaoa"
+        ),
+        "mean_candidate_aware_raw_gain_over_expected_qaoa": summarize_metric(
+            rows, "candidate_aware_raw_gain_over_expected_qaoa"
+        ),
+        "mean_candidate_aware_gain_over_random_top_k": summarize_metric(
+            rows, "candidate_aware_gain_over_random_top_k"
+        ),
         "simulated_annealing_optimum_hits": int(
             sum(row["simulated_annealing_AR_rate"] >= 1.0 - 1e-9 for row in rows)
         ),
@@ -1829,15 +1853,65 @@ def summarize_suite_rows(rows: Sequence[dict]) -> dict:
                 for row in rows
             )
         ),
+        "candidate_aware_top_k_optimum_hits": int(
+            sum(
+                row["candidate_aware_top_k_local_AR_rate"] >= 1.0 - 1e-9
+                for row in rows
+            )
+        ),
+        "candidate_aware_top_k_beats_greedy": int(
+            sum(
+                row["candidate_aware_top_k_local_AR_rate"]
+                > row["greedy_AR_rate"] + 1e-9
+                for row in rows
+            )
+        ),
+        "candidate_aware_top_k_beats_random_top_k": int(
+            sum(
+                row["candidate_aware_top_k_local_AR_rate"]
+                > row["random_top_k_local_AR_rate"] + 1e-9
+                for row in rows
+            )
+        ),
+        "candidate_aware_top_k_beats_expected_qaoa": int(
+            sum(
+                row["candidate_aware_top_k_local_AR_rate"]
+                > row["qaoa_top_k_local_AR_rate"] + 1e-9
+                for row in rows
+            )
+        ),
+        "candidate_aware_raw_top_k_beats_expected_qaoa": int(
+            sum(
+                row["candidate_aware_raw_top_k_AR_rate"]
+                > row["qaoa_raw_top_k_AR_rate"] + 1e-9
+                for row in rows
+            )
+        ),
+        "candidate_aware_top_k_ties_or_beats_expected_qaoa": int(
+            sum(
+                row["candidate_aware_top_k_local_AR_rate"]
+                >= row["qaoa_top_k_local_AR_rate"] - 1e-9
+                for row in rows
+            )
+        ),
+        "candidate_aware_raw_top_k_ties_or_beats_expected_qaoa": int(
+            sum(
+                row["candidate_aware_raw_top_k_AR_rate"]
+                >= row["qaoa_raw_top_k_AR_rate"] - 1e-9
+                for row in rows
+            )
+        ),
     }
 
 
-def summarize_suite_top_k_sweep(rows: Sequence[dict]) -> list[dict]:
+def summarize_suite_top_k_sweep(
+    rows: Sequence[dict], sweep_key: str = "top_k_sweep"
+) -> list[dict]:
     top_k_values = sorted(
         {
             sweep_row["top_k"]
             for row in rows
-            for sweep_row in row.get("top_k_sweep", [])
+            for sweep_row in row.get(sweep_key, [])
         }
     )
     summaries: list[dict] = []
@@ -1845,7 +1919,7 @@ def summarize_suite_top_k_sweep(rows: Sequence[dict]) -> list[dict]:
         sweep_rows = [
             sweep_row
             for row in rows
-            for sweep_row in row.get("top_k_sweep", [])
+            for sweep_row in row.get(sweep_key, [])
             if sweep_row["top_k"] == top_k
         ]
         if not sweep_rows:
@@ -1964,6 +2038,8 @@ def run_suite(args: argparse.Namespace) -> dict:
             grid_steps=getattr(args, "suite_grid_steps", 31),
             shots=getattr(args, "suite_shots", 1024),
             seed=seed,
+            selection_objective="expected_rate",
+            candidate_top_k=top_k,
         )
         qaoa_top = feasible[qaoa_result.top_index]
         local_comparison = compare_qaoa_vs_random_local_search(
@@ -1974,6 +2050,26 @@ def run_suite(args: argparse.Namespace) -> dict:
             top_k=top_k,
             random_trials=random_trials,
             seed=seed,
+        )
+        candidate_aware_result, candidate_aware_probabilities = run_valid_subspace_qaoa(
+            feasible,
+            exact_index,
+            reps=1,
+            grid_steps=getattr(args, "suite_grid_steps", 31),
+            shots=getattr(args, "suite_shots", 1024),
+            seed=seed,
+            selection_objective="top_k_raw_rate",
+            candidate_top_k=top_k,
+        )
+        candidate_aware_top = feasible[candidate_aware_result.top_index]
+        candidate_aware_comparison = compare_qaoa_vs_random_local_search(
+            env,
+            feasible,
+            candidate_aware_probabilities,
+            exact,
+            top_k=top_k,
+            random_trials=random_trials,
+            seed=seed + 17,
         )
         simulated_annealing = compare_simulated_annealing(
             feasible,
@@ -1993,6 +2089,15 @@ def run_suite(args: argparse.Namespace) -> dict:
             top_k_values=sweep_top_k,
             random_trials=sweep_random_trials,
             seed=seed,
+        )
+        candidate_aware_top_k_sweep = build_top_k_sweep(
+            env,
+            feasible,
+            candidate_aware_probabilities,
+            exact,
+            top_k_values=sweep_top_k,
+            random_trials=sweep_random_trials,
+            seed=seed + 17,
         )
         rows.append(
             {
@@ -2017,6 +2122,30 @@ def run_suite(args: argparse.Namespace) -> dict:
                 "random_top_k_optimum_hit_rate": (
                     local_comparison.random_optimum_hit_rate
                 ),
+                "candidate_aware_top_AR_rate": (
+                    candidate_aware_top.sum_rate / exact.sum_rate
+                ),
+                "candidate_aware_raw_top_k_AR_rate": (
+                    candidate_aware_comparison.qaoa_raw_best.sum_rate / exact.sum_rate
+                ),
+                "candidate_aware_top_k_local_AR_rate": (
+                    candidate_aware_comparison.qaoa_best.sum_rate / exact.sum_rate
+                ),
+                "candidate_aware_local_gain_AR_rate": (
+                    candidate_aware_comparison.qaoa_local_gain_ar
+                ),
+                "candidate_aware_gain_over_expected_qaoa": (
+                    candidate_aware_comparison.qaoa_best.sum_rate / exact.sum_rate
+                    - local_comparison.qaoa_best.sum_rate / exact.sum_rate
+                ),
+                "candidate_aware_raw_gain_over_expected_qaoa": (
+                    candidate_aware_comparison.qaoa_raw_best.sum_rate / exact.sum_rate
+                    - local_comparison.qaoa_raw_best.sum_rate / exact.sum_rate
+                ),
+                "candidate_aware_gain_over_random_top_k": (
+                    candidate_aware_comparison.qaoa_best.sum_rate / exact.sum_rate
+                    - local_comparison.random_mean_ar
+                ),
                 "simulated_annealing_AR_rate": simulated_annealing.mean_ar,
                 "simulated_annealing_optimum_hit_rate": (
                     simulated_annealing.optimum_hit_rate
@@ -2025,9 +2154,19 @@ def run_suite(args: argparse.Namespace) -> dict:
                     simulated_annealing.best.assignment
                 ),
                 "qaoa_optimum_probability": qaoa_result.optimum_probability,
+                "candidate_aware_optimum_probability": (
+                    candidate_aware_result.optimum_probability
+                ),
                 "qaoa_top_assignment": list(qaoa_top.assignment),
                 "qaoa_top_k_assignment": list(local_comparison.qaoa_best.assignment),
+                "candidate_aware_top_assignment": list(
+                    candidate_aware_top.assignment
+                ),
+                "candidate_aware_top_k_assignment": list(
+                    candidate_aware_comparison.qaoa_best.assignment
+                ),
                 "top_k_sweep": top_k_sweep,
+                "candidate_aware_top_k_sweep": candidate_aware_top_k_sweep,
             }
         )
 
@@ -2056,6 +2195,12 @@ def run_suite(args: argparse.Namespace) -> dict:
         "stress": summarize_suite_rows(stress_rows),
         "top_k_sweep": summarize_suite_top_k_sweep(rows),
         "stress_top_k_sweep": summarize_suite_top_k_sweep(stress_rows),
+        "candidate_aware_top_k_sweep": summarize_suite_top_k_sweep(
+            rows, "candidate_aware_top_k_sweep"
+        ),
+        "candidate_aware_stress_top_k_sweep": summarize_suite_top_k_sweep(
+            stress_rows, "candidate_aware_top_k_sweep"
+        ),
         "rows": rows,
         "skipped": skipped,
     }
@@ -2458,6 +2603,8 @@ def print_summary(results: dict) -> None:
             "greedy+local AR={mean_greedy_local_AR_rate:.3f}, "
             "QAOA raw top-k AR={mean_qaoa_raw_top_k_AR_rate:.3f}, "
             "QAOA top-k+local AR={mean_qaoa_top_k_local_AR_rate:.3f}, "
+            "candidate-aware raw top-k AR={mean_candidate_aware_raw_top_k_AR_rate:.3f}, "
+            "candidate-aware top-k+local AR={mean_candidate_aware_top_k_local_AR_rate:.3f}, "
             "QAOA local gain={mean_qaoa_local_gain_AR_rate:.3f}, "
             "random top-k+local AR={mean_random_top_k_local_AR_rate:.3f}, "
             "SA AR={mean_simulated_annealing_AR_rate:.3f}".format(
@@ -2469,6 +2616,8 @@ def print_summary(results: dict) -> None:
             "greedy+local AR={mean_greedy_local_AR_rate:.3f}, "
             "QAOA raw top-k AR={mean_qaoa_raw_top_k_AR_rate:.3f}, "
             "QAOA top-k+local AR={mean_qaoa_top_k_local_AR_rate:.3f}, "
+            "candidate-aware raw top-k AR={mean_candidate_aware_raw_top_k_AR_rate:.3f}, "
+            "candidate-aware top-k+local AR={mean_candidate_aware_top_k_local_AR_rate:.3f}, "
             "QAOA local gain={mean_qaoa_local_gain_AR_rate:.3f}, "
             "random top-k+local AR={mean_random_top_k_local_AR_rate:.3f}, "
             "SA AR={mean_simulated_annealing_AR_rate:.3f}".format(
@@ -2479,6 +2628,18 @@ def print_summary(results: dict) -> None:
         if suite_sweep:
             print("Suite top-K sweep: K, effective K, QAOA AR, random AR, QAOA hits, gain")
             for row in suite_sweep:
+                print(
+                    "  {top_k} ({mean_effective_top_k:.1f}): {mean_qaoa_AR_rate:.3f}, "
+                    "{mean_random_AR_rate:.3f}, {qaoa_optimum_hits}/{count}, "
+                    "{mean_qaoa_gain_over_random:.3f}".format(**row)
+                )
+        candidate_suite_sweep = suite.get("candidate_aware_top_k_sweep", [])
+        if candidate_suite_sweep:
+            print(
+                "Candidate-aware suite top-K sweep: K, effective K, QAOA AR, "
+                "random AR, QAOA hits, gain"
+            )
+            for row in candidate_suite_sweep:
                 print(
                     "  {top_k} ({mean_effective_top_k:.1f}): {mean_qaoa_AR_rate:.3f}, "
                     "{mean_random_AR_rate:.3f}, {qaoa_optimum_hits}/{count}, "

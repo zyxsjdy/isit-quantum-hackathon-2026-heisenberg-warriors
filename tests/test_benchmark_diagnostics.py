@@ -13,6 +13,7 @@ from qaoa_isac_benchmark import (
     enumerate_assignments,
     extract_sampler_counts,
     parse_float_list,
+    run_suite,
     run_scale_challenge,
     run_valid_subspace_qaoa,
     summarize_full_binary_angle_probe,
@@ -227,6 +228,43 @@ class BenchmarkDiagnosticsTest(unittest.TestCase):
         result = run_scale_challenge(args)
 
         self.assertNotIn("hardware_evidence", result)
+
+    def test_suite_reports_candidate_aware_qaoa(self):
+        args = Namespace(
+            suite_seed_range="1:2",
+            suite_uavs=2,
+            suite_grid_points=4,
+            suite_survivors=2,
+            suite_antennas=2,
+            suite_gamma_min=0.0,
+            suite_grid_steps=3,
+            suite_shots=16,
+            suite_top_k=2,
+            suite_random_trials=2,
+            suite_sweep_top_k="1,2",
+            suite_sweep_random_trials=2,
+            suite_sa_restarts=2,
+            suite_sa_steps=4,
+            suite_sa_trials=2,
+            suite_sa_start_temperature=0.25,
+            suite_sa_end_temperature=0.01,
+            suite_stress_gap=0.0,
+        )
+
+        result = run_suite(args)
+
+        self.assertGreaterEqual(result["all"]["count"], 1)
+        self.assertIn("mean_candidate_aware_top_k_local_AR_rate", result["all"])
+        self.assertIn("candidate_aware_top_k_sweep", result)
+        self.assertEqual(
+            len(result["candidate_aware_top_k_sweep"]),
+            len(result["top_k_sweep"]),
+        )
+        for row in result["rows"]:
+            self.assertIn("candidate_aware_top_k_local_AR_rate", row)
+            self.assertIn("candidate_aware_top_k_sweep", row)
+            self.assertGreaterEqual(row["candidate_aware_top_k_local_AR_rate"], 0.0)
+            self.assertLessEqual(row["candidate_aware_top_k_local_AR_rate"], 1.0)
 
     def test_smaller_hardware_evidence_records_completed_ibm_job(self):
         evidence = build_smaller_hardware_evidence_status()
